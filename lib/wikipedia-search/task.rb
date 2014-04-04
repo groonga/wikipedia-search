@@ -13,15 +13,19 @@ module WikipediaSearch
     include Rake::DSL
 
     def define
-      namespace :data do
-        directory data_dir_path.to_s
-        define_download_tasks
-        define_convert_tasks
-      end
+      define_data_tasks
     end
 
     private
-    def define_download_tasks
+    def define_data_tasks
+      namespace :data do
+        directory data_dir_path.to_s
+        define_data_download_tasks
+        define_data_convert_tasks
+      end
+    end
+
+    def define_data_download_tasks
       namespace :download do
         namespace :pages do
           file ja_pages_path.to_s => data_dir_path.to_s do
@@ -45,14 +49,14 @@ module WikipediaSearch
       end
     end
 
-    def define_convert_tasks
+    def define_data_convert_tasks
       namespace :convert do
-        define_convert_groonga_tasks
-        define_convert_droonga_tasks
+        define_data_convert_groonga_tasks
+        define_data_convert_droonga_tasks
       end
     end
 
-    def define_convert_groonga_tasks
+    def define_data_convert_groonga_tasks
       namespace :groonga do
         file ja_groonga_pages_path.to_s => ja_pages_path.to_s do
           command_line = []
@@ -75,7 +79,7 @@ module WikipediaSearch
       end
     end
 
-    def define_convert_droonga_tasks
+    def define_data_convert_droonga_tasks
       namespace :droonga do
         file ja_droonga_pages_path.to_s => ja_groonga_pages_path.to_s do
           sh("grn2drn",
