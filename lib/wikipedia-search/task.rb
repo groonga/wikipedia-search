@@ -1,3 +1,6 @@
+require "rbconfig"
+require "shellwords"
+
 require "wikipedia-search/downloader"
 
 module WikipediaSearch
@@ -13,6 +16,7 @@ module WikipediaSearch
       namespace :data do
         directory data_dir_path.to_s
         define_download_tasks
+        define_convert_tasks
       end
     end
 
@@ -29,6 +33,27 @@ module WikipediaSearch
       end
     end
 
+    def define_convert_tasks
+      namespace :convert do
+        namespace :ja do
+          desc "Convert Japanese Wikipedia data to Groonga data."
+          task :groonga => ja_data_path.to_s do
+            command_line = []
+            command_line << "bzcat"
+            command_line << Shellwords.escape(ja_data_path.to_s)
+            command_line << "|"
+            command_line << RbConfig.ruby
+            command_line << "bin/wikipedia-to-groonga.rb"
+            command_line << "--max-n-records"
+            command_line << "5000"
+            command_line << "--output"
+            command_line << ja_groonga_output_path.to_s
+            sh(command_line.join(" "))
+          end
+        end
+      end
+    end
+
     def data_dir_path
       @data_dir_path ||= Pathname.new("data")
     end
@@ -39,6 +64,10 @@ module WikipediaSearch
 
     def ja_data_base_name
       "jawiki-latest-pages-articles.xml.bz2"
+    end
+
+    def ja_groonga_output_path
+      @ja_groonga_output_path ||= data_dir_path + "ja-data.grn"
     end
   end
 end
