@@ -58,7 +58,7 @@ namespace :data do
                ja_data_path)
     end
 
-    desc "Download the latest Japanese Wikiepdia data."
+    desc "Download the latest Japanese Wikipedia data."
     task :ja => ja_data_path.to_s
   end
 end
