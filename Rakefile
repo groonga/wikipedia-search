@@ -39,7 +39,8 @@ def download(url, output_path)
   open(url, options) do |input|
     output_path.open("wb") do |output|
       chunk = ""
-      while input.read(8012, chunk)
+      chunk_size = 8012
+      while input.read(chunk_size, chunk)
         output.print(chunk)
       end
     end
