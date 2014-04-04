@@ -14,6 +14,7 @@ module WikipediaSearch
 
     def define
       define_data_tasks
+      define_groonga_tasks
     end
 
     private
@@ -93,6 +94,33 @@ module WikipediaSearch
       end
     end
 
+    def define_groonga_tasks
+      namespace :groonga do
+        desc "Load data."
+        task :load do
+          rm_rf(groonga_database_dir_path.to_s)
+          mkdir_p(groonga_database_dir_path.to_s)
+          groonga_run(groonga_schema_path.to_s)
+          groonga_run(ja_groonga_pages_path.to_s.to_s)
+          groonga_run(groonga_indexes_path.to_s)
+        end
+      end
+    end
+
+    def groonga_run(input)
+      command_line = [
+        "groonga",
+        "--log-path", (groonga_database_dir_path + "groonga.log").to_s,
+        "--query-log-path", (groonga_database_dir_path + "query.log").to_s,
+        "--file", input,
+      ]
+      unless groonga_database_path.exist?
+        command_line << "-n"
+      end
+      command_line << groonga_database_path.to_s
+      sh(*command_line)
+    end
+
     def download_base_url(language)
       "http://dumps.wikimedia.org/#{language}wiki/latest"
     end
@@ -127,6 +155,26 @@ module WikipediaSearch
 
     def ja_titles_base_name
       "jawiki-latest-all-titles.gz"
+    end
+
+    def config_dir
+      Pathname.new("config")
+    end
+
+    def groonga_schema_path
+      config_dir + "groonga" + "schema.grn"
+    end
+
+    def groonga_indexes_path
+      config_dir + "groonga" + "indexes.grn"
+    end
+
+    def groonga_database_dir_path
+      data_dir_path + "groonga"
+    end
+
+    def groonga_database_path
+      groonga_database_dir_path + "db"
     end
   end
 end

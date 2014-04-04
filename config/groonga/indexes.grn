@@ -1,0 +1,7 @@
+column_create Categories pages_categories COLUMN_INDEX Pages categories
+
+table_create Terms TABLE_PAT_KEY ShortText \
+  --default_tokenizer TokenBigram \
+  --normalizer NormalizerAuto
+column_create Terms pages COLUMN_INDEX|WITH_SECTION|WITH_POSITION \
+  Pages title,text

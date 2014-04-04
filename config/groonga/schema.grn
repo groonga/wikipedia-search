@@ -1,0 +1,6 @@
+table_create Categories TABLE_HASH_KEY ShortText
+
+table_create Pages TABLE_HASH_KEY UInt64
+column_create Pages title COLUMN_SCALAR ShortText
+column_create Pages text COLUMN_SCALAR Text
+column_create Pages categories COLUMN_VECTOR Categories
