@@ -29,8 +29,10 @@ module WikipediaSearch
         @text_stack = [""]
         @first_page = true
         @n_records = 0
-        @max_n_records = @options[:max_n_records]
+        @max_n_records = @options[:max_n_records] || -1
         @max_n_records = nil if @max_n_records < 0
+        @max_n_characters = @options[:max_n_characters] || -1
+        @max_n_characters = nil if @max_n_characters < 0
       end
 
       def start(abort_tag)
@@ -68,7 +70,7 @@ module WikipediaSearch
           page = {
             "_key"  => @id,
             "title" => @title,
-            "text"  => @text,
+            "text"  => shorten_text(@text),
           }
           @output.print(JSON.generate(page))
           @n_records += 1
@@ -97,6 +99,14 @@ module WikipediaSearch
 
       def pop_stacks
         @text_stack.pop
+      end
+
+      def shorten_text(text)
+        if @max_n_characters
+          text[0, @max_n_characters]
+        else
+          text
+        end
       end
     end
   end

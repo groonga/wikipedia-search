@@ -15,12 +15,18 @@ options = OpenStruct.new
 options.output = "-"
 converter_options = {
   :max_n_records => -1,
+  :max_n_characters => -1,
 }
 parser = OptionParser.new
 parser.on("--max-n-records=N", Integer,
           "The number of maximum records. -1 means unlimited.",
           "(#{converter_options[:max_n_records]})") do |n|
   converter_options[:max_n_records] = n
+end
+parser.on("--max-n-characters=N", Integer,
+          "The number of maximum characters in a record. -1 means unlimited.",
+          "(#{converter_options[:max_n_characters]})") do |n|
+  converter_options[:max_n_characters] = n
 end
 parser.on("--output=PATH",
           "Output to PATH. '-' means the standard output.",

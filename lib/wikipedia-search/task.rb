@@ -45,6 +45,8 @@ module WikipediaSearch
             command_line << "bin/wikipedia-to-groonga.rb"
             command_line << "--max-n-records"
             command_line << "5000"
+            command_line << "--max-n-characters"
+            command_line << "1000"
             command_line << "--output"
             command_line << ja_groonga_data_path.to_s
             sh(command_line.join(" "))

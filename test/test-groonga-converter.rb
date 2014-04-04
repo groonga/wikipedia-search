@@ -71,4 +71,25 @@ load --table Pages
 ]
     GROONGA
   end
+
+  def test_max_n_characters
+    xml = <<-XML
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
+  <page>
+    <title>Title</title>
+    <id>1</id>
+    <revision>
+      <id>1001</id>
+      <text>Text</text>
+    </revision>
+  </page>
+</mediawiki>
+    XML
+    assert_equal(<<-GROONGA, convert(xml, :max_n_characters => 2))
+load --table Pages
+[
+{"_key":1,"title":"Title","text":"Te"}
+]
+    GROONGA
+  end
 end
