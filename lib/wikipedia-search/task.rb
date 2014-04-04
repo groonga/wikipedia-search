@@ -36,8 +36,7 @@ module WikipediaSearch
     def define_convert_tasks
       namespace :convert do
         namespace :ja do
-          desc "Convert Japanese Wikipedia data to Groonga data."
-          task :groonga => ja_data_path.to_s do
+          file ja_groonga_data_path.to_s => ja_data_path.to_s do
             command_line = []
             command_line << "bzcat"
             command_line << Shellwords.escape(ja_data_path.to_s)
@@ -47,9 +46,22 @@ module WikipediaSearch
             command_line << "--max-n-records"
             command_line << "5000"
             command_line << "--output"
-            command_line << ja_groonga_output_path.to_s
+            command_line << ja_groonga_data_path.to_s
             sh(command_line.join(" "))
           end
+
+          desc "Convert Japanese Wikipedia data to Groonga data."
+          task :groonga => ja_groonga_data_path.to_s
+
+          file ja_droonga_data_path.to_s => ja_groonga_data_path.to_s do
+            sh("grn2drn",
+               "--dataset", "Wikipedia",
+               "--output", ja_droonga_data_path.to_s,
+               ja_groonga_data_path.to_s)
+          end
+
+          desc "Convert Japanese Wikipedia data to Droonga data."
+          task :droonga => ja_droonga_data_path.to_s
         end
       end
     end
@@ -66,8 +78,12 @@ module WikipediaSearch
       "jawiki-latest-pages-articles.xml.bz2"
     end
 
-    def ja_groonga_output_path
-      @ja_groonga_output_path ||= data_dir_path + "ja-data.grn"
+    def ja_groonga_data_path
+      @ja_groonga_data_path ||= data_dir_path + "ja-data.grn"
+    end
+
+    def ja_droonga_data_path
+      @ja_droonga_data_path ||= data_dir_path + "ja-data.jsons"
     end
   end
 end
