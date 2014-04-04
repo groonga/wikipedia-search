@@ -47,36 +47,45 @@ module WikipediaSearch
 
     def define_convert_tasks
       namespace :convert do
-        namespace :ja do
-          file ja_groonga_pages_path.to_s => ja_pages_path.to_s do
-            command_line = []
-            command_line << "bzcat"
-            command_line << Shellwords.escape(ja_pages_path.to_s)
-            command_line << "|"
-            command_line << RbConfig.ruby
-            command_line << "bin/wikipedia-to-groonga.rb"
-            command_line << "--max-n-records"
-            command_line << "5000"
-            command_line << "--max-n-characters"
-            command_line << "1000"
-            command_line << "--output"
-            command_line << ja_groonga_pages_path.to_s
-            sh(command_line.join(" "))
-          end
+        define_convert_groonga_tasks
+        define_convert_droonga_tasks
+      end
+    end
 
-          desc "Convert Japanese Wikipedia page data to Groonga page data."
-          task :groonga => ja_groonga_pages_path.to_s
-
-          file ja_droonga_pages_path.to_s => ja_groonga_pages_path.to_s do
-            sh("grn2drn",
-               "--dataset", "Wikipedia",
-               "--output", ja_droonga_pages_path.to_s,
-               ja_groonga_pages_path.to_s)
-          end
-
-          desc "Convert Japanese Wikipedia page data to Droonga page data."
-          task :droonga => ja_droonga_pages_path.to_s
+    def define_convert_groonga_tasks
+      namespace :groonga do
+        file ja_groonga_pages_path.to_s => ja_pages_path.to_s do
+          command_line = []
+          command_line << "bzcat"
+          command_line << Shellwords.escape(ja_pages_path.to_s)
+          command_line << "|"
+          command_line << RbConfig.ruby
+          command_line << "bin/wikipedia-to-groonga.rb"
+          command_line << "--max-n-records"
+          command_line << "5000"
+          command_line << "--max-n-characters"
+          command_line << "1000"
+          command_line << "--output"
+          command_line << ja_groonga_pages_path.to_s
+          sh(command_line.join(" "))
         end
+
+        desc "Convert Japanese Wikipedia page data to Groonga page data."
+        task :ja => ja_groonga_pages_path.to_s
+      end
+    end
+
+    def define_convert_droonga_tasks
+      namespace :droonga do
+        file ja_droonga_pages_path.to_s => ja_groonga_pages_path.to_s do
+          sh("grn2drn",
+             "--dataset", "Wikipedia",
+             "--output", ja_droonga_pages_path.to_s,
+             ja_groonga_pages_path.to_s)
+        end
+
+        desc "Convert Japanese Wikipedia page data to Droonga page data."
+        task :ja => ja_droonga_pages_path.to_s
       end
     end
 
