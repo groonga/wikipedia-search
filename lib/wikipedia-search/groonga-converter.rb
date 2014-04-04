@@ -5,24 +5,35 @@ require "rexml/parsers/streamparser"
 
 module WikipediaSearch
   class GroongaConverter
-    def initialize(input)
+    def initialize(input, options={})
       @input = input
+      @options = options
     end
 
     def convert(output)
-      listener = Listener.new(output)
-      parser = REXML::Parsers::StreamParser.new(@input, listener)
-      parser.parse
+      listener = Listener.new(output, @options)
+      catch do |tag|
+        parser = REXML::Parsers::StreamParser.new(@input, listener)
+        listener.start(tag)
+        parser.parse
+      end
       listener.finish
     end
 
     class Listener
       include REXML::StreamListener
 
-      def initialize(output)
+      def initialize(output, options)
         @output = output
+        @options = options
         @text_stack = [""]
         @first_page = true
+        @n_records = 0
+        @max_n_records = @options[:max_n_records]
+      end
+
+      def start(abort_tag)
+        @abort_tag = abort_tag
         @output.puts("load --table Pages")
         @output.puts("[")
       end
@@ -45,6 +56,9 @@ module WikipediaSearch
       def tag_end(name)
         case name
         when "page"
+          if @max_n_records and @n_records >= @max_n_records
+            throw(@abort_tag)
+          end
           if @first_page
             @first_page = false
           else
@@ -56,6 +70,7 @@ module WikipediaSearch
             "text"  => @text,
           }
           @output.print(JSON.generate(page))
+          @n_records += 1
         when "title"
           @title = @text_stack.last
         when "id"
