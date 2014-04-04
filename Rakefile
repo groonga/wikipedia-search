@@ -7,4 +7,6 @@ lib_dir_path = base_dir_path + "lib"
 
 $LOAD_PATH.unshift(lib_dir_path.to_s)
 
-require "wikipedia-search/task/download"
+require "wikipedia-search/task"
+
+WikipediaSearch::Task.define
