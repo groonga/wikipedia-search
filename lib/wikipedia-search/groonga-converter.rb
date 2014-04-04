@@ -30,6 +30,7 @@ module WikipediaSearch
         @first_page = true
         @n_records = 0
         @max_n_records = @options[:max_n_records]
+        @max_n_records = nil if @max_n_records < 0
       end
 
       def start(abort_tag)
