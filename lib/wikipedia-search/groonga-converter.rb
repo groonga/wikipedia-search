@@ -50,9 +50,7 @@ module WikipediaSearch
         push_stacks
         case name
         when "page"
-          @title = nil
-          @id = nil
-          @text = nil
+          @page = Page.new
         end
       end
 
@@ -68,18 +66,19 @@ module WikipediaSearch
             @output.puts(",")
           end
           page = {
-            "_key"  => @id,
-            "title" => @title,
-            "text"  => shorten_text(@text),
+            "_key"  => @page.id,
+            "title" => @page.title,
+            "text"  => shorten_text(@page.text),
+            "categories" => @page.extract_categories,
           }
           @output.print(JSON.generate(page))
           @n_records += 1
         when "title"
-          @title = @text_stack.last
+          @page.title = @text_stack.last
         when "id"
-          @id ||= Integer(@text_stack.last)
+          @page.id ||= Integer(@text_stack.last)
         when "text"
-          @text = @text_stack.last
+          @page.text = @text_stack.last
         end
         pop_stacks
       end
@@ -106,6 +105,28 @@ module WikipediaSearch
           text[0, @max_n_characters]
         else
           text
+        end
+      end
+
+      class Page
+        attr_accessor :id, :title, :text
+        def initialize
+          @id = nil
+          @title = nil
+          @text = nil
+        end
+
+        def extract_categories
+          return [] if @text.nil?
+
+          categories = []
+          @text.scan(/\[\[(.+?)\]\]/) do |link,|
+            case link
+            when /\ACategory:(.+?)(?:\|.*)?\z/
+              categories << $1
+            end
+          end
+          categories
         end
       end
     end

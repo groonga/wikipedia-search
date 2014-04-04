@@ -38,7 +38,7 @@ load --table Pages
     assert_equal(<<-GROONGA, convert(xml))
 load --table Pages
 [
-{"_key":1,"title":"Title","text":"Text1 & Text2"}
+{"_key":1,"title":"Title","text":"Text1 & Text2","categories":[]}
 ]
     GROONGA
   end
@@ -67,7 +67,7 @@ load --table Pages
     assert_equal(<<-GROONGA, convert(xml, :max_n_records => 1))
 load --table Pages
 [
-{"_key":1,"title":"Title1","text":"Text1"}
+{"_key":1,"title":"Title1","text":"Text1","categories":[]}
 ]
     GROONGA
   end
@@ -88,7 +88,28 @@ load --table Pages
     assert_equal(<<-GROONGA, convert(xml, :max_n_characters => 2))
 load --table Pages
 [
-{"_key":1,"title":"Title","text":"Te"}
+{"_key":1,"title":"Title","text":"Te","categories":[]}
+]
+    GROONGA
+  end
+
+  def test_categories
+    xml = <<-XML
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
+  <page>
+    <title>Title</title>
+    <id>1</id>
+    <revision>
+      <id>1001</id>
+      <text>[[Category:Groonga]]</text>
+    </revision>
+  </page>
+</mediawiki>
+    XML
+    assert_equal(<<-GROONGA, convert(xml))
+load --table Pages
+[
+{"_key":1,"title":"Title","text":"[[Category:Groonga]]","categories":["Groonga"]}
 ]
     GROONGA
   end
