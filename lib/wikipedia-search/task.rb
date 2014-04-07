@@ -130,11 +130,11 @@ module WikipediaSearch
     end
 
     def data_dir_path
-      @data_dir_path ||= Pathname.new("data")
+      Pathname.new("data")
     end
 
     def ja_pages_path
-      @ja_pages_path ||= data_dir_path + ja_pages_base_name
+      data_dir_path + ja_pages_base_name
     end
 
     def ja_pages_base_name
@@ -142,15 +142,15 @@ module WikipediaSearch
     end
 
     def ja_groonga_pages_path
-      @ja_groonga_pages_path ||= data_dir_path + "ja-pages.grn"
+       data_dir_path + "ja-pages.grn"
     end
 
     def ja_droonga_pages_path
-      @ja_droonga_pages_path ||= data_dir_path + "ja-pages.jsons"
+      data_dir_path + "ja-pages.jsons"
     end
 
     def ja_titles_path
-      @ja_titles_path ||= data_dir_path + ja_titles_base_name
+      data_dir_path + ja_titles_base_name
     end
 
     def ja_titles_base_name
