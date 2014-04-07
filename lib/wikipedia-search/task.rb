@@ -1,5 +1,6 @@
 require "rbconfig"
 require "shellwords"
+require "json"
 
 require "wikipedia-search/downloader"
 require "wikipedia-search/path"
@@ -90,21 +91,38 @@ module WikipediaSearch
 
     def define_data_convert_droonga_tasks
       namespace :droonga do
-        file @path.droonga.pages.to_s => @path.groonga.pages.to_s do
-          sh("grn2drn",
-             "--dataset", "Wikipedia",
-             "--output", @path.droonga.pages.to_s,
-             @path.groonga.pages.to_s)
+        schema_dependencies = [
+          @path.groonga.schema.to_s,
+          @path.groonga.indexes.to_s,
+        ]
+        file @path.droonga.schema.to_s => schema_dependencies do
+          sh("grn2drn-schema",
+             "--output", @path.droonga.schema.to_s,
+             @path.groonga.schema.to_s,
+             @path.groonga.indexes.to_s)
         end
 
-        desc "Convert Japanese Wikipedia page data to Droonga page data."
-        task :ja => @path.droonga.pages.to_s
+        desc "Convert Groonga schema to Droonga schema."
+        task :schema => @path.droonga.schema.to_s
+
+        namespace :pages do
+          file @path.droonga.pages.to_s => @path.groonga.pages.to_s do
+            sh("grn2drn",
+               "--dataset", "Wikipedia",
+               "--output", @path.droonga.pages.to_s,
+               @path.groonga.pages.to_s)
+          end
+
+          desc "Convert Japanese Wikipedia page data to Droonga page data."
+          task :ja => @path.droonga.pages.to_s
+        end
       end
     end
 
     def define_local_tasks
       namespace :local do
         define_local_groonga_tasks
+        define_local_droonga_tasks
       end
     end
 
@@ -133,6 +151,116 @@ module WikipediaSearch
       end
       command_line << @path.groonga.database.to_s
       sh(*command_line)
+    end
+
+    def define_local_droonga_tasks
+      namespace :droonga do
+        dependencies = [
+          @path.droonga.pages.to_s,
+          @path.droonga.schema.to_s,
+        ]
+        desc "Load data."
+        task :load => dependencies do
+          rm_rf(@path.droonga.working_dir.to_s)
+          mkdir_p(@path.droonga.working_dir.to_s)
+
+          node_ids = [0, 1]
+          node_ids.each do |node_id|
+            droonga_generate_fluentd_conf(node_id)
+          end
+
+          droonga_generate_catalog(node_ids)
+
+          begin
+            node_ids.each do |node_id|
+              droonga_run_engine(node_id)
+            end
+            front_node_id = node_ids.first
+            droonga_wait_engine_ready(front_node_id)
+            port = droonga_port(front_node_id)
+            sh("droonga-send",
+               "--server", "droonga:127.0.0.1:#{port}/droonga",
+               "--report-throughput",
+               @path.droonga.pages.to_s)
+          ensure
+            node_ids.each do |node_id|
+              droonga_stop_engine(node_id)
+            end
+          end
+        end
+      end
+    end
+
+    def droonga_port(node_id)
+      24000 + node_id
+    end
+
+    def droonga_generate_fluentd_conf(node_id)
+      fluend_conf_path = @path.droonga.fluentd_conf(node_id)
+      fluend_conf_path.open("w") do |fluend_conf|
+        port = droonga_port(node_id)
+        fluend_conf.puts(<<-CONF)
+<source>
+  type forward
+  port #{port}
+</source>
+<match droonga.message>
+  type droonga
+  name 127.0.0.1:#{port}/droonga
+</match>
+        CONF
+      end
+    end
+
+    def droonga_generate_catalog(node_ids)
+      replicas_path = @path.droonga.working_dir + "replicas.json"
+      replicas_path.open("w") do |replicas_file|
+        replicas = 2.times.collect do |i|
+          slices = node_ids.collect do |node_id|
+            port = droonga_port(node_id)
+            {
+              "volume" => {
+                "address" => "127.0.0.1:#{port}/droonga.#{i}#{node_id}"
+              }
+            }
+          end
+          {
+            "slices" => slices,
+          }
+        end
+        replicas_file.puts(JSON.pretty_generate(replicas))
+      end
+      sh("droonga-catalog-generate",
+         "--output", @path.droonga.catalog.to_s,
+         "--dataset", "Wikipedia",
+         "--n-workers", "3",
+         "--schema", @path.droonga.schema.to_s,
+         "--fact", "Pages",
+         "--replicas", replicas_path.to_s)
+    end
+
+    def droonga_run_engine(node_id)
+      system("fluentd",
+             "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
+             "--log", @path.droonga.log(node_id).expand_path.to_s,
+             "--daemon", @path.droonga.pid(node_id).expand_path.to_s,
+             :chdir => @path.droonga.working_dir.to_s)
+    end
+
+    def droonga_wait_engine_ready(node_id)
+      port = droonga_port(node_id)
+      3.times do
+        begin
+          TCPSocket.new("127.0.0.1", port)
+        rescue SystemCallError
+          sleep(1)
+        end
+      end
+    end
+
+    def droonga_stop_engine(node_id)
+      pid_path = @path.droonga.pid(node_id)
+      Process.kill(:TERM, Integer(pid_path.read)) if pid_path.exist?
     end
   end
 end

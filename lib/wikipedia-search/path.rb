@@ -127,5 +127,29 @@ module WikipediaSearch
     def pages
       data_dir + "#{@language}-pages.jsons"
     end
+
+    def schema
+      data_dir + "schema.json"
+    end
+
+    def working_dir
+      data_dir + "wikipedia"
+    end
+
+    def catalog
+      working_dir + "catalog.json"
+    end
+
+    def fluentd_conf(node_id)
+      working_dir + "fluentd-#{node_id}.conf"
+    end
+
+    def log(node_id)
+      working_dir + "fluentd-#{node_id}.log"
+    end
+
+    def pid(node_id)
+      working_dir + "fluentd-#{node_id}.pid"
+    end
   end
 end
