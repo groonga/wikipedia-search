@@ -19,7 +19,7 @@ module WikipediaSearch
 
     def define
       define_data_tasks
-      define_groonga_tasks
+      define_local_tasks
     end
 
     private
@@ -102,7 +102,13 @@ module WikipediaSearch
       end
     end
 
-    def define_groonga_tasks
+    def define_local_tasks
+      namespace :local do
+        define_local_groonga_tasks
+      end
+    end
+
+    def define_local_groonga_tasks
       namespace :groonga do
         desc "Load data."
         task :load => @path.groonga.pages.to_s do
