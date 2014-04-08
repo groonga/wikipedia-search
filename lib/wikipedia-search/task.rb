@@ -155,16 +155,17 @@ module WikipediaSearch
 
     def define_local_droonga_tasks
       namespace :droonga do
-        dependencies = [
+        node_ids = [0, 1]
+
+        load_dependencies = [
           @path.droonga.pages.to_s,
           @path.droonga.schema.to_s,
         ]
         desc "Load data."
-        task :load => dependencies do
+        task :load => load_dependencies do
           rm_rf(@path.droonga.working_dir.to_s)
           mkdir_p(@path.droonga.working_dir.to_s)
 
-          node_ids = [0, 1]
           node_ids.each do |node_id|
             droonga_generate_fluentd_conf(node_id)
           end
@@ -182,6 +183,24 @@ module WikipediaSearch
                "--server", "droonga:127.0.0.1:#{port}/droonga",
                "--report-throughput",
                @path.droonga.pages.to_s)
+          ensure
+            node_ids.each do |node_id|
+              droonga_stop_engine(node_id)
+            end
+          end
+        end
+
+        desc "Run Droonga cluster."
+        task :run do
+          begin
+            node_ids.each do |node_id|
+              droonga_run_engine(node_id)
+              port = droonga_port(node_id)
+              puts("127.0.0.1:#{port}/droonga")
+            end
+            front_node_id = node_ids.first
+            droonga_wait_engine_ready(front_node_id)
+            $stdin.gets
           ensure
             node_ids.each do |node_id|
               droonga_stop_engine(node_id)
