@@ -186,7 +186,7 @@ module WikipediaSearch
                @path.droonga.pages.to_s)
           ensure
             pids.each do |pid|
-              droonga_stop_engine(pid)
+              stop_process(pid)
             end
           end
         end
@@ -205,7 +205,7 @@ module WikipediaSearch
             $stdin.gets
           ensure
             pids.each do |pid|
-              droonga_stop_engine(pid)
+              stop_process(pid)
             end
           end
         end
@@ -277,7 +277,7 @@ module WikipediaSearch
       end
     end
 
-    def droonga_stop_engine(pid)
+    def stop_process(pid)
       Process.kill(:TERM, pid)
     end
   end
