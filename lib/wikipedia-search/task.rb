@@ -172,9 +172,10 @@ module WikipediaSearch
 
           droonga_generate_catalog(node_ids)
 
+          pids = []
           begin
             node_ids.each do |node_id|
-              droonga_run_engine(node_id)
+              pids << droonga_run_engine(node_id)
             end
             front_node_id = node_ids.first
             droonga_wait_engine_ready(front_node_id)
@@ -184,17 +185,18 @@ module WikipediaSearch
                "--report-throughput",
                @path.droonga.pages.to_s)
           ensure
-            node_ids.each do |node_id|
-              droonga_stop_engine(node_id)
+            pids.each do |pid|
+              droonga_stop_engine(pid)
             end
           end
         end
 
         desc "Run Droonga cluster."
         task :run do
+          pids = []
           begin
             node_ids.each do |node_id|
-              droonga_run_engine(node_id)
+              pids << droonga_run_engine(node_id)
               port = droonga_port(node_id)
               puts("127.0.0.1:#{port}/droonga")
             end
@@ -202,8 +204,8 @@ module WikipediaSearch
             droonga_wait_engine_ready(front_node_id)
             $stdin.gets
           ensure
-            node_ids.each do |node_id|
-              droonga_stop_engine(node_id)
+            pids.each do |pid|
+              droonga_stop_engine(pid)
             end
           end
         end
@@ -259,11 +261,9 @@ module WikipediaSearch
     end
 
     def droonga_run_engine(node_id)
-      system("fluentd",
-             "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
-             "--log", @path.droonga.log(node_id).expand_path.to_s,
-             "--daemon", @path.droonga.pid(node_id).expand_path.to_s,
-             :chdir => @path.droonga.working_dir.to_s)
+      spawn("fluentd",
+            "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
+            :chdir => @path.droonga.working_dir.to_s)
     end
 
     def droonga_wait_engine_ready(node_id)
@@ -277,9 +277,8 @@ module WikipediaSearch
       end
     end
 
-    def droonga_stop_engine(node_id)
-      pid_path = @path.droonga.pid(node_id)
-      Process.kill(:TERM, Integer(pid_path.read)) if pid_path.exist?
+    def droonga_stop_engine(pid)
+      Process.kill(:TERM, pid)
     end
   end
 end
