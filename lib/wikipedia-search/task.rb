@@ -201,6 +201,7 @@ module WikipediaSearch
               puts("127.0.0.1:#{port}/droonga")
             end
             front_node_id = node_ids.first
+            pids << droonga_run_protocol_adapter(front_node_id)
             droonga_wait_engine_ready(front_node_id)
             $stdin.gets
           ensure
@@ -264,6 +265,12 @@ module WikipediaSearch
       spawn("fluentd",
             "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
             :chdir => @path.droonga.working_dir.to_s)
+    end
+
+    def droonga_run_protocol_adapter(node_id)
+      spawn("droonga-http-server",
+            "--droonga-engine-port", droonga_port(node_id).to_s,
+            "--default-dataset", "Wikipedia")
     end
 
     def droonga_wait_engine_ready(node_id)
