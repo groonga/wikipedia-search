@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require "pp"
 require "pathname"
 require "ostruct"
 require "optparse"
@@ -83,6 +84,9 @@ def send_request(query, client, options)
       n_hits = 0
     end
     p [elapsed, query, status_code, n_hits]
+    if options.show_response
+      pp response
+    end
     yield
   end
 end
