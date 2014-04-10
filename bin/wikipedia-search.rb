@@ -92,19 +92,23 @@ def send_request(query, client, options)
 end
 
 def run_request(queries, client, options)
-  if queries.empty?
+  query = nil
+  begin
+    query = queries.next
+  rescue StopIteration
     client.close
     return
   end
 
-  query = queries.pop
   send_request(query, client, options) do
     run_request(queries, client, options)
   end
 end
 
-queries = ARGF.each_line.collect do |line|
-  line.strip
+queries = Enumerator.new do |yielder|
+  ARGF.each_line do |line|
+    yielder << line.strip
+  end
 end
 
 loop = Coolio::Loop.default
