@@ -20,6 +20,7 @@ options.protocol = "droonga"
 options.host = "127.0.0.1"
 options.port = 24000
 options.max_n_connections = 10
+options.timeout = 5
 options.show_response = false
 
 protocols = ["droonga", "droonga-http", "groonga-http"]
@@ -43,6 +44,11 @@ parser.on("--max-n-connections=N", Integer,
           "Use N connections for search.",
           "(#{options.max_n_connections})") do |n|
   options.max_n_connections = n
+end
+parser.on("--timeout=SECONDS", Integer,
+          "If a request doesn't return until SECONDS, sends the next request.",
+          "(#{options.timeout})") do |seconds|
+  options.timeout = seconds
 end
 parser.parse!(ARGV)
 
@@ -73,7 +79,7 @@ def build_droonga_message(query)
   }
 end
 
-def send_request(query, client, options)
+def send_request(query, client, loop, options)
   start = Time.now
   client.request(build_droonga_message(query)) do |response|
     elapsed = Time.now - start
@@ -91,7 +97,7 @@ def send_request(query, client, options)
   end
 end
 
-def run_request(queries, client, options)
+def run_request(queries, client, loop, options)
   query = nil
   begin
     query = queries.next
@@ -100,8 +106,17 @@ def run_request(queries, client, options)
     return
   end
 
-  send_request(query, client, options) do
-    run_request(queries, client, options)
+  run_next_request = lambda do
+    run_request(queries, client, loop, options)
+  end
+  timer = Coolio::TimerWatcher.new(options.timeout)
+  timer.on_timer do
+    run_next_request.call
+  end
+  timer.attach(loop)
+  send_request(query, client, loop, options) do
+    timer.detach
+    run_next_request.call
   end
 end
 
@@ -122,6 +137,6 @@ options.max_n_connections.times do
     :loop => loop,
   }
   client = Droonga::Client.new(client_options)
-  run_request(queries, client, options)
+  run_request(queries, client, loop, options)
 end
 loop.run
