@@ -4,4 +4,4 @@ source "http://api.berkshelf.com/"
 
 local_cookbooks_dir = "vendor/cookbooks"
 
-cookbook "droonga", :git => "https://github.com/droonga/chef-cookbooks.git"
+cookbook "droonga", :git => "https://github.com/droonga/chef-cookbooks.git", :rel => "droonga"
