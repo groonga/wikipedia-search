@@ -9,6 +9,18 @@ It searches Wikipedia data.
 
 TODO
 
+## About chef cookbooks
+
+If you use Ubuntu 12.04LTS, you need to install depending library via apt:
+
+    % sudo apt-get install libgecode-dev
+
+Then, install "berks":
+
+    % cd chef
+    % bundle install --path vendor/bundle
+    % bundle exec berks
+
 ## License
 
 CC0 1.0 Universal. See LICENSE.txt for details.
