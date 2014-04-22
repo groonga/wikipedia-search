@@ -217,23 +217,6 @@ module WikipediaSearch
       24000 + node_id
     end
 
-    def droonga_generate_fluentd_conf(node_id)
-      fluend_conf_path = @path.droonga.fluentd_conf(node_id)
-      fluend_conf_path.open("w") do |fluend_conf|
-        port = droonga_port(node_id)
-        fluend_conf.puts(<<-CONF)
-<source>
-  type forward
-  port #{port}
-</source>
-<match droonga.message>
-  type droonga
-  name 127.0.0.1:#{port}/droonga
-</match>
-        CONF
-      end
-    end
-
     def droonga_generate_catalog(node_ids)
       replicas_path = @path.droonga.working_dir + "replicas.json"
       replicas_path.open("w") do |replicas_file|
@@ -262,8 +245,10 @@ module WikipediaSearch
     end
 
     def droonga_run_engine(node_id)
-      spawn("fluentd",
-            "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
+      spawn("droonga-engine",
+            "--host", "127.0.0.1",
+            "--port", droonga_port(node_id).to_s,
+            "--tag", "droonga",
             :chdir => @path.droonga.working_dir.to_s)
     end
 

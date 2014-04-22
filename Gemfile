@@ -9,11 +9,11 @@ gem "cool.io"
 gem "test-unit", :require => false
 
 base_dir = File.dirname(__FILE__)
-local_fluent_plugin_droonga = File.join(base_dir, "..", "fluent-plugin-droonga")
-if File.exist?(local_fluent_plugin_droonga)
-  gem "fluent-plugin-droonga", :path => local_fluent_plugin_droonga
+local_droonga_engine = File.join(base_dir, "..", "droonga-engine")
+if File.exist?(local_droonga_engine)
+  gem "droonga-engine", :path => local_droonga_engine
 else
-  gem "fluent-plugin-droonga", :github => "droonga/fluent-plugin-droonga"
+  gem "droonga-engine", :github => "droonga/droonga-engine"
 end
 
 local_droonga_client_ruby = File.join(base_dir, "..", "droonga-client-ruby")
