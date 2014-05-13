@@ -166,10 +166,6 @@ module WikipediaSearch
           rm_rf(@path.droonga.working_dir.to_s)
           mkdir_p(@path.droonga.working_dir.to_s)
 
-          node_ids.each do |node_id|
-            droonga_generate_fluentd_conf(node_id)
-          end
-
           droonga_generate_catalog(node_ids)
 
           pids = []
