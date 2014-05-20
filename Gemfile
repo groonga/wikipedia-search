@@ -6,6 +6,8 @@ gem "rake"
 gem "bundler"
 gem "grn2drn"
 gem "cool.io"
+gem "berksfile"
+gem "chef"
 gem "test-unit", :require => false
 
 base_dir = File.dirname(__FILE__)
