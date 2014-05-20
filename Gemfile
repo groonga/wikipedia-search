@@ -6,7 +6,7 @@ gem "rake"
 gem "bundler"
 gem "grn2drn"
 gem "cool.io"
-gem "berksfile"
+gem "berkshelf"
 gem "chef"
 gem "test-unit", :require => false
 
