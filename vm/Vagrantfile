@@ -86,7 +86,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.berkshelf.enabled = true
 
   config.vm.provision :chef_solo do |chef|
-    chef.add_recipe "droonga::engine"
+    chef.roles_path = "roles"
     chef.add_role "droonga-engine"
   end
 
