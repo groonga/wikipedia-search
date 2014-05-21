@@ -139,17 +139,5 @@ module WikipediaSearch
     def catalog
       working_dir + "catalog.json"
     end
-
-    def fluentd_conf(node_id)
-      working_dir + "fluentd-#{node_id}.conf"
-    end
-
-    def log(node_id)
-      working_dir + "fluentd-#{node_id}.log"
-    end
-
-    def pid(node_id)
-      working_dir + "fluentd-#{node_id}.pid"
-    end
   end
 end
