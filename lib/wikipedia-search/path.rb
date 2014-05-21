@@ -136,8 +136,12 @@ module WikipediaSearch
       data_dir + "wikipedia"
     end
 
-    def catalog
-      working_dir + "catalog.json"
+    def node_working_dir(node_id)
+      working_dir + node_id.to_s
+    end
+
+    def catalog(node_id)
+      node_working_dir(node_id) + "catalog.json"
     end
   end
 end
