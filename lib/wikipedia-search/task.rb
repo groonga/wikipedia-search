@@ -278,6 +278,7 @@ module WikipediaSearch
 
     def stop_process(pid)
       Process.kill(:TERM, pid)
+      Process.waitpid(pid)
     end
   end
 end
