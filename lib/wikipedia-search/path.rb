@@ -136,20 +136,12 @@ module WikipediaSearch
       data_dir + "wikipedia"
     end
 
-    def catalog
-      working_dir + "catalog.json"
+    def node_working_dir(node_id)
+      working_dir + node_id.to_s
     end
 
-    def fluentd_conf(node_id)
-      working_dir + "fluentd-#{node_id}.conf"
-    end
-
-    def log(node_id)
-      working_dir + "fluentd-#{node_id}.log"
-    end
-
-    def pid(node_id)
-      working_dir + "fluentd-#{node_id}.pid"
+    def catalog(node_id)
+      node_working_dir(node_id) + "catalog.json"
     end
   end
 end

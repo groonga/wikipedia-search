@@ -163,25 +163,25 @@ module WikipediaSearch
         ]
         desc "Load data."
         task :load => load_dependencies do
-          rm_rf(@path.droonga.working_dir.to_s)
-          mkdir_p(@path.droonga.working_dir.to_s)
-
-          node_ids.each do |node_id|
-            droonga_generate_fluentd_conf(node_id)
-          end
-
-          droonga_generate_catalog(node_ids)
-
           pids = []
           begin
             node_ids.each do |node_id|
+              working_dir = @path.droonga.node_working_dir(node_id)
+              rm_rf(working_dir.to_s)
+              mkdir_p(working_dir.to_s)
+
+              droonga_generate_catalog(node_id, node_ids)
+
               pids << droonga_run_engine(node_id)
             end
+            node_ids.each do |node_id|
+              droonga_wait_engine_ready(node_id)
+            end
             front_node_id = node_ids.first
-            droonga_wait_engine_ready(front_node_id)
+            host = droonga_host(front_node_id)
             port = droonga_port(front_node_id)
             sh("droonga-send",
-               "--server", "droonga:127.0.0.1:#{port}/droonga",
+               "--server", "droonga:#{host}:#{port}/droonga",
                "--report-throughput",
                @path.droonga.pages.to_s)
           ensure
@@ -197,8 +197,9 @@ module WikipediaSearch
           begin
             node_ids.each do |node_id|
               pids << droonga_run_engine(node_id)
+              host = droonga_host(node_id)
               port = droonga_port(node_id)
-              puts("127.0.0.1:#{port}/droonga")
+              puts("#{host}:#{port}/droonga")
             end
             front_node_id = node_ids.first
             pids << droonga_run_protocol_adapter(front_node_id)
@@ -213,36 +214,24 @@ module WikipediaSearch
       end
     end
 
+    def droonga_host(node_id)
+      "127.0.0.#{100 + node_id}"
+    end
+
     def droonga_port(node_id)
       24000 + node_id
     end
 
-    def droonga_generate_fluentd_conf(node_id)
-      fluend_conf_path = @path.droonga.fluentd_conf(node_id)
-      fluend_conf_path.open("w") do |fluend_conf|
-        port = droonga_port(node_id)
-        fluend_conf.puts(<<-CONF)
-<source>
-  type forward
-  port #{port}
-</source>
-<match droonga.message>
-  type droonga
-  name 127.0.0.1:#{port}/droonga
-</match>
-        CONF
-      end
-    end
-
-    def droonga_generate_catalog(node_ids)
-      replicas_path = @path.droonga.working_dir + "replicas.json"
+    def droonga_generate_catalog(node_id, node_ids)
+      replicas_path = @path.droonga.node_working_dir(node_id) + "replicas.json"
       replicas_path.open("w") do |replicas_file|
         replicas = 2.times.collect do |i|
           slices = node_ids.collect do |node_id|
+            host = droonga_host(node_id)
             port = droonga_port(node_id)
             {
               "volume" => {
-                "address" => "127.0.0.1:#{port}/droonga.#{i}#{node_id}"
+                "address" => "#{host}:#{port}/droonga.#{i}#{node_id}"
               }
             }
           end
@@ -252,8 +241,8 @@ module WikipediaSearch
         end
         replicas_file.puts(JSON.pretty_generate(replicas))
       end
-      sh("droonga-catalog-generate",
-         "--output", @path.droonga.catalog.to_s,
+      sh("droonga-engine-catalog-generate",
+         "--output", @path.droonga.catalog(node_id).to_s,
          "--dataset", "Wikipedia",
          "--n-workers", "3",
          "--schema", @path.droonga.schema.to_s,
@@ -262,9 +251,11 @@ module WikipediaSearch
     end
 
     def droonga_run_engine(node_id)
-      spawn("fluentd",
-            "--config", @path.droonga.fluentd_conf(node_id).expand_path.to_s,
-            :chdir => @path.droonga.working_dir.to_s)
+      spawn("droonga-engine",
+            "--host", droonga_host(node_id),
+            "--port", droonga_port(node_id).to_s,
+            "--tag", "droonga",
+            :chdir => @path.droonga.node_working_dir(node_id).to_s)
     end
 
     def droonga_run_protocol_adapter(node_id)
@@ -274,10 +265,11 @@ module WikipediaSearch
     end
 
     def droonga_wait_engine_ready(node_id)
+      host = droonga_host(node_id)
       port = droonga_port(node_id)
-      3.times do
+      60.times do
         begin
-          TCPSocket.new("127.0.0.1", port)
+          TCPSocket.new(host, port)
         rescue SystemCallError
           sleep(1)
         end
@@ -286,6 +278,7 @@ module WikipediaSearch
 
     def stop_process(pid)
       Process.kill(:TERM, pid)
+      Process.waitpid(pid)
     end
   end
 end

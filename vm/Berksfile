@@ -2,7 +2,5 @@
 
 source "http://api.berkshelf.com/"
 
-local_cookbooks_dir = "vendor/cookbooks"
-
 cookbook "groonga", :git => "https://github.com/groonga/chef-cookbooks.git", :rel => "groonga"
 cookbook "droonga", :git => "https://github.com/droonga/chef-cookbooks.git", :rel => "droonga"
