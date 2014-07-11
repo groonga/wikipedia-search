@@ -4,7 +4,7 @@ require "pathname"
 require "ostruct"
 require "optparse"
 
-base_dir_path = Pathname.new(__FILE__).dirname
+base_dir_path = Pathname.new(__FILE__).dirname.parent
 lib_dir_path = base_dir_path + "lib"
 
 $LOAD_PATH.unshift(lib_dir_path.to_s)
