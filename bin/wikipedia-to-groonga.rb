@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require "pathname"
+require "fileutils"
 require "ostruct"
 require "optparse"
 
@@ -40,6 +41,7 @@ if options.output == "-"
   output = $stdout
   converter.convert(output)
 else
+  FileUtils.mkdir_p(File.dirname(options.output))
   File.open(options.output, "w") do |output|
     converter.convert(output)
   end
