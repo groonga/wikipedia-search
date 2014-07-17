@@ -69,19 +69,28 @@ module WikipediaSearch
 
     def define_data_convert_groonga_tasks
       namespace :groonga do
+        base_command_line = [
+          "bzcat",
+          Shellwords.escape(@path.wikipedia.pages.to_s),
+          "|",
+          RbConfig.ruby,
+          "bin/wikipedia-to-groonga.rb",
+        ]
         file @path.groonga.pages.to_s => @path.wikipedia.pages.to_s do
-          command_line = []
-          command_line << "bzcat"
-          command_line << Shellwords.escape(@path.wikipedia.pages.to_s)
-          command_line << "|"
-          command_line << RbConfig.ruby
-          command_line << "bin/wikipedia-to-groonga.rb"
+          command_line = base_command_line.dup
           command_line << "--max-n-records"
           command_line << "5000"
           command_line << "--max-n-characters"
           command_line << "1000"
           command_line << "--output"
           command_line << @path.groonga.pages.to_s
+          sh(command_line.join(" "))
+        end
+
+        file @path.groonga.all_pages.to_s => @path.wikipedia.pages.to_s do
+          command_line = base_command_line.dup
+          command_line << "--output"
+          command_line << @path.groonga.all_pages.to_s
           sh(command_line.join(" "))
         end
 
@@ -111,6 +120,12 @@ module WikipediaSearch
             sh("grn2drn",
                "--output", @path.droonga.pages.to_s,
                @path.groonga.pages.to_s)
+          end
+
+          file @path.droonga.all_pages.to_s => @path.groonga.all_pages.to_s do
+            sh("grn2drn",
+               "--output", @path.droonga.all_pages.to_s,
+               @path.groonga.all_pages.to_s)
           end
 
           desc "Convert Japanese Wikipedia page data to Droonga page data."

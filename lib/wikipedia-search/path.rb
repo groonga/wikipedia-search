@@ -93,6 +93,10 @@ module WikipediaSearch
       data_dir + "#{@language}-pages.grn"
     end
 
+    def all_pages
+      data_dir + "#{@language}-all-pages.grn"
+    end
+
     def database_dir
       data_dir + "db"
     end
@@ -126,6 +130,10 @@ module WikipediaSearch
 
     def pages
       data_dir + "#{@language}-pages.jsons"
+    end
+
+    def all_pages
+      data_dir + "#{@language}-all-pages.jsons"
     end
 
     def schema
