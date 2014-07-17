@@ -180,7 +180,7 @@ module WikipediaSearch
             end
             front_node_id = node_ids.first
             host = droonga_host(front_node_id)
-            port = droonga_port(front_node_id)
+            port = droonga_port
             sh("droonga-send",
                "--server", "droonga:#{host}:#{port}/droonga",
                "--report-throughput",
@@ -197,7 +197,7 @@ module WikipediaSearch
             node_ids.each do |node_id|
               pids << droonga_run_engine(node_id)
               host = droonga_host(node_id)
-              port = droonga_port(node_id)
+              port = droonga_port
               puts("#{host}:#{port}/droonga")
             end
             front_node_id = node_ids.first
@@ -215,8 +215,8 @@ module WikipediaSearch
       "127.0.0.#{100 + node_id}"
     end
 
-    def droonga_port(node_id)
-      24000 + node_id
+    def droonga_port
+      24000
     end
 
     def droonga_generate_catalog(node_id, node_ids)
@@ -225,7 +225,7 @@ module WikipediaSearch
         replicas = 2.times.collect do |i|
           slices = node_ids.collect do |node_id|
             host = droonga_host(node_id)
-            port = droonga_port(node_id)
+            port = droonga_port
             {
               "volume" => {
                 "address" => "#{host}:#{port}/droonga.#{i}#{node_id}"
@@ -250,20 +250,20 @@ module WikipediaSearch
     def droonga_run_engine(node_id)
       spawn("droonga-engine",
             "--host", droonga_host(node_id),
-            "--port", droonga_port(node_id).to_s,
+            "--port", droonga_port.to_s,
             "--tag", "droonga",
             :chdir => @path.droonga.node_working_dir(node_id).to_s)
     end
 
     def droonga_run_protocol_adapter(node_id)
       spawn("droonga-http-server",
-            "--droonga-engine-port", droonga_port(node_id).to_s,
+            "--droonga-engine-port", droonga_port.to_s,
             "--default-dataset", "Wikipedia")
     end
 
     def droonga_wait_engine_ready(node_id)
       host = droonga_host(node_id)
-      port = droonga_port(node_id)
+      port = droonga_port
       60.times do
         begin
           TCPSocket.new(host, port)
