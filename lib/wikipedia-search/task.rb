@@ -109,7 +109,6 @@ module WikipediaSearch
         namespace :pages do
           file @path.droonga.pages.to_s => @path.groonga.pages.to_s do
             sh("grn2drn",
-               "--dataset", "Wikipedia",
                "--output", @path.droonga.pages.to_s,
                @path.groonga.pages.to_s)
           end
@@ -240,7 +239,6 @@ module WikipediaSearch
       end
       sh("droonga-engine-catalog-generate",
          "--output", @path.droonga.catalog(node_id).to_s,
-         "--dataset", "Wikipedia",
          "--n-workers", "3",
          "--schema", @path.droonga.schema.to_s,
          "--fact", "Pages",
@@ -257,8 +255,7 @@ module WikipediaSearch
 
     def droonga_run_protocol_adapter(node_id)
       spawn("droonga-http-server",
-            "--droonga-engine-port", droonga_port.to_s,
-            "--default-dataset", "Wikipedia")
+            "--droonga-engine-port", droonga_port.to_s)
     end
 
     def droonga_wait_engine_ready(node_id)
