@@ -1,6 +1,7 @@
 require "rbconfig"
 require "shellwords"
 require "json"
+require "socket"
 
 require "wikipedia-search/downloader"
 require "wikipedia-search/path"
