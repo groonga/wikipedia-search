@@ -247,11 +247,13 @@ module WikipediaSearch
 
     def droonga_run_engine(node_id)
       base_dir = @path.droonga.node_working_dir(node_id)
+      pid_file = base_dir + "droonga-engine.pid"
       spawn("droonga-engine",
             "--base-dir", base_dir.to_s,
             "--host", droonga_host(node_id),
             "--port", droonga_port.to_s,
-            "--tag", "droonga")
+            "--tag", "droonga",
+            "--pid-file", pid_file.to_s)
     end
 
     def droonga_run_protocol_adapter(node_id)
