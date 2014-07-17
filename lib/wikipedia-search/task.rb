@@ -246,11 +246,12 @@ module WikipediaSearch
     end
 
     def droonga_run_engine(node_id)
+      base_dir = @path.droonga.node_working_dir(node_id)
       spawn("droonga-engine",
+            "--base-dir", base_dir.to_s,
             "--host", droonga_host(node_id),
             "--port", droonga_port.to_s,
-            "--tag", "droonga",
-            :chdir => @path.droonga.node_working_dir(node_id).to_s)
+            "--tag", "droonga")
     end
 
     def droonga_run_protocol_adapter(node_id)
