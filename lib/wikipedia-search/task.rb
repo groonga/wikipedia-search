@@ -186,9 +186,7 @@ module WikipediaSearch
                "--report-throughput",
                @path.droonga.pages.to_s)
           ensure
-            pids.each do |pid|
-              stop_process(pid)
-            end
+            stop_processes(pids)
           end
         end
 
@@ -207,9 +205,7 @@ module WikipediaSearch
             droonga_wait_engine_ready(front_node_id)
             $stdin.gets
           ensure
-            pids.each do |pid|
-              stop_process(pid)
-            end
+            stop_processes(pids)
           end
         end
       end
@@ -275,6 +271,15 @@ module WikipediaSearch
           sleep(1)
         end
       end
+    end
+
+    def stop_processes(pids)
+      stop_threads = pids.collect do |pid|
+        Thread.new do
+          stop_process(pid)
+        end
+      end
+      stop_threads.each(&:join)
     end
 
     def stop_process(pid)
