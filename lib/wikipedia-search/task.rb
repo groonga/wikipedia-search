@@ -234,30 +234,17 @@ module WikipediaSearch
     end
 
     def droonga_generate_catalog(node_id, node_ids)
-      replicas_path = @path.droonga.node_working_dir(node_id) + "replicas.json"
-      replicas_path.open("w") do |replicas_file|
-        replicas = 2.times.collect do |i|
-          slices = node_ids.collect do |node_id|
-            host = droonga_host(node_id)
-            port = droonga_port
-            {
-              "volume" => {
-                "address" => "#{host}:#{port}/droonga.#{i}#{node_id}"
-              }
-            }
-          end
-          {
-            "slices" => slices,
-          }
-        end
-        replicas_file.puts(JSON.pretty_generate(replicas))
+      hosts = node_ids.collect do |node_id|
+        droonga_host(node_id)
       end
       sh("droonga-engine-catalog-generate",
          "--output", @path.droonga.catalog(node_id).to_s,
          "--n-workers", "3",
          "--schema", @path.droonga.schema.to_s,
          "--fact", "Pages",
-         "--replicas", replicas_path.to_s)
+         "--hosts", hosts.join(","),
+         "--port", droonga_port.to_s,
+         "--n-slices", "4")
     end
 
     def droonga_run_engine(node_id)
