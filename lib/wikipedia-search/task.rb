@@ -263,6 +263,7 @@ module WikipediaSearch
 
     def droonga_run_protocol_adapter(node_id)
       spawn("droonga-http-server",
+            "--droonga-engine-host-name", droonga_host(node_id),
             "--droonga-engine-port", droonga_port.to_s)
     end
 
