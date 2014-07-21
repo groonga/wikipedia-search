@@ -199,9 +199,6 @@ module WikipediaSearch
                "--server", "droonga:#{host}:#{port}/droonga",
                "--report-throughput",
                @path.droonga.pages.to_s)
-            # TODO: REMOVE ME by implementing real graceful stop in
-            # droonga-engine.
-            sleep(5)
           ensure
             stop_processes(pids)
           end
