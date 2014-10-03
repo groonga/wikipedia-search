@@ -77,11 +77,19 @@ module WikipediaSearch
           "bin/wikipedia-to-groonga.rb",
         ]
         file @path.groonga.pages.to_s => @path.wikipedia.pages.to_s do
+          max_n_records = ENV["MAX_N_RECORDS"]
+          if max_n_records.nil? or max_n_records.empty?
+            max_n_records = 5000
+          end
+          max_n_characters = ENV["MAX_N_CHARACTERS"]
+          if max_n_characters.nil? or max_n_characters.empty?
+            max_n_characters = 1000
+          end
           command_line = base_command_line.dup
           command_line << "--max-n-records"
-          command_line << ENV["MAX_N_RECORDS"] || "5000"
+          command_line << max_n_records.to_s
           command_line << "--max-n-characters"
-          command_line << ENV["MAX_N_CHARACTERS"] || "1000"
+          command_line << max_n_characters.to_s
           command_line << "--output"
           command_line << @path.groonga.pages.to_s
           sh(command_line.join(" "))
