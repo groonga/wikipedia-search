@@ -79,9 +79,9 @@ module WikipediaSearch
         file @path.groonga.pages.to_s => @path.wikipedia.pages.to_s do
           command_line = base_command_line.dup
           command_line << "--max-n-records"
-          command_line << "5000"
+          command_line << ENV["MAX_N_RECORDS"] || "5000"
           command_line << "--max-n-characters"
-          command_line << "1000"
+          command_line << ENV["MAX_N_CHARACTERS"] || "1000"
           command_line << "--output"
           command_line << @path.groonga.pages.to_s
           sh(command_line.join(" "))
