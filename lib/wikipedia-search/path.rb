@@ -30,6 +30,10 @@ module WikipediaSearch
     def droonga
       DroongaPath.new(self, @language)
     end
+
+    def sql
+      SQLPath.new(self, @language)
+    end
   end
 
   class WikipediaPath
@@ -150,6 +154,45 @@ module WikipediaSearch
 
     def catalog(node_id)
       node_working_dir(node_id) + "catalog.json"
+    end
+  end
+
+  class SQLPath
+    def initialize(base_path, language)
+      @base_path = base_path
+      @language = language
+    end
+
+    def config_dir
+      @base_path.config_dir + "sql"
+    end
+
+    def data_dir
+      @base_path.data_dir + "sql"
+    end
+
+    def mroonga_schema
+      config_dir + "schema.mroonga.sql"
+    end
+
+    def mroonga_indexes
+      config_dir + "indexes.mroonga.sql"
+    end
+
+    def pgroonga_schema
+      config_dir + "schema.pgroonga.sql"
+    end
+
+    def pgroonga_indexes
+      config_dir + "indexes.pgroonga.sql"
+    end
+
+    def pages
+      data_dir + "#{@language}-pages.sql"
+    end
+
+    def all_pages
+      data_dir + "#{@language}-all-pages.sql"
     end
   end
 end

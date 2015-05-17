@@ -1,0 +1,65 @@
+#!/usr/bin/env ruby
+
+require "pathname"
+require "fileutils"
+require "ostruct"
+require "optparse"
+
+base_dir_path = Pathname.new(__FILE__).dirname.parent
+lib_dir_path = base_dir_path + "lib"
+
+$LOAD_PATH.unshift(lib_dir_path.to_s)
+
+require "wikipedia-search/groonga-converter"
+require "wikipedia-search/sql-converter"
+
+available_formats = [:groonga, :sql]
+
+options = OpenStruct.new
+options.output = "-"
+options.format = :groonga
+converter_options = {
+  :max_n_records => -1,
+  :max_n_characters => -1,
+}
+parser = OptionParser.new
+parser.on("--format=FORMAT", available_formats,
+          "Output format.",
+          "available formats: #{available_formats.join(', ')}",
+          "(#{options.format})") do |format|
+  options.format = format
+end
+parser.on("--max-n-records=N", Integer,
+          "The number of maximum records. -1 means unlimited.",
+          "(#{converter_options[:max_n_records]})") do |n|
+  converter_options[:max_n_records] = n
+end
+parser.on("--max-n-characters=N", Integer,
+          "The number of maximum characters in a record. -1 means unlimited.",
+          "(#{converter_options[:max_n_characters]})") do |n|
+  converter_options[:max_n_characters] = n
+end
+parser.on("--output=PATH",
+          "Output to PATH. '-' means the standard output.",
+          "(#{options.output})") do |path|
+  options.output = path
+end
+parser.parse!(ARGV)
+
+converter_class = nil
+case options.format
+when :groonga
+  converter_class = WikipediaSearch::GroongaConverter
+when :sql
+  converter_class = WikipediaSearch::SQLConverter
+end
+converter = converter_class.new(ARGF, converter_options)
+if options.output == "-"
+  output = $stdout
+  converter.convert(output)
+else
+  FileUtils.mkdir_p(File.dirname(options.output))
+  File.open(options.output, "w") do |output|
+    converter.convert(output)
+  end
+end
