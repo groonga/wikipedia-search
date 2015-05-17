@@ -68,41 +68,47 @@ module WikipediaSearch
       end
     end
 
+    def define_wikipedia_data_convert_tasks(format, pages_path, all_pages_path)
+      base_command_line = [
+        "bzcat",
+        Shellwords.escape(@path.wikipedia.pages.to_s),
+        "|",
+        RbConfig.ruby,
+        "bin/wikipedia-convert",
+        "--format", format,
+      ]
+      file pages_path.to_s => @path.wikipedia.pages.to_s do
+        max_n_records = ENV["MAX_N_RECORDS"]
+        if max_n_records.nil? or max_n_records.empty?
+          max_n_records = 5000
+        end
+        max_n_characters = ENV["MAX_N_CHARACTERS"]
+        if max_n_characters.nil? or max_n_characters.empty?
+          max_n_characters = 1000
+        end
+        command_line = base_command_line.dup
+        command_line << "--max-n-records"
+        command_line << max_n_records.to_s
+        command_line << "--max-n-characters"
+        command_line << max_n_characters.to_s
+        command_line << "--output"
+        command_line << pages_path.to_s
+        sh(command_line.join(" "))
+      end
+
+      file all_pages_path.to_s => @path.wikipedia.pages.to_s do
+        command_line = base_command_line.dup
+        command_line << "--output"
+        command_line << all_pages_path.to_s
+        sh(command_line.join(" "))
+      end
+    end
+
     def define_data_convert_groonga_tasks
       namespace :groonga do
-        base_command_line = [
-          "bzcat",
-          Shellwords.escape(@path.wikipedia.pages.to_s),
-          "|",
-          RbConfig.ruby,
-          "bin/wikipedia-to-groonga.rb",
-        ]
-        file @path.groonga.pages.to_s => @path.wikipedia.pages.to_s do
-          max_n_records = ENV["MAX_N_RECORDS"]
-          if max_n_records.nil? or max_n_records.empty?
-            max_n_records = 5000
-          end
-          max_n_characters = ENV["MAX_N_CHARACTERS"]
-          if max_n_characters.nil? or max_n_characters.empty?
-            max_n_characters = 1000
-          end
-          command_line = base_command_line.dup
-          command_line << "--max-n-records"
-          command_line << max_n_records.to_s
-          command_line << "--max-n-characters"
-          command_line << max_n_characters.to_s
-          command_line << "--output"
-          command_line << @path.groonga.pages.to_s
-          sh(command_line.join(" "))
-        end
-
-        file @path.groonga.all_pages.to_s => @path.wikipedia.pages.to_s do
-          command_line = base_command_line.dup
-          command_line << "--output"
-          command_line << @path.groonga.all_pages.to_s
-          sh(command_line.join(" "))
-        end
-
+        define_wikipedia_data_convert_tasks("groonga",
+                                            @path.groonga.pages,
+                                            @path.groonga.all_pages)
         desc "Convert Japanese Wikipedia page data to Groonga page data."
         task :ja => @path.groonga.pages.to_s
       end
@@ -144,41 +150,10 @@ module WikipediaSearch
     end
 
     def define_data_convert_sql_tasks
-      namespace :groonga do
-        base_command_line = [
-          "bzcat",
-          Shellwords.escape(@path.wikipedia.pages.to_s),
-          "|",
-          RbConfig.ruby,
-          "bin/wikipedia-convert",
-          "--format", "sql",
-        ]
-        file @path.sql.pages.to_s => @path.wikipedia.pages.to_s do
-          max_n_records = ENV["MAX_N_RECORDS"]
-          if max_n_records.nil? or max_n_records.empty?
-            max_n_records = 5000
-          end
-          max_n_characters = ENV["MAX_N_CHARACTERS"]
-          if max_n_characters.nil? or max_n_characters.empty?
-            max_n_characters = 1000
-          end
-          command_line = base_command_line.dup
-          command_line << "--max-n-records"
-          command_line << max_n_records.to_s
-          command_line << "--max-n-characters"
-          command_line << max_n_characters.to_s
-          command_line << "--output"
-          command_line << @path.sql.pages.to_s
-          sh(command_line.join(" "))
-        end
-
-        file @path.sql.all_pages.to_s => @path.wikipedia.pages.to_s do
-          command_line = base_command_line.dup
-          command_line << "--output"
-          command_line << @path.sql.all_pages.to_s
-          sh(command_line.join(" "))
-        end
-
+      namespace :sql do
+        define_wikipedia_data_convert_tasks("sql",
+                                            @path.sql.pages,
+                                            @path.sql.all_pages)
         desc "Convert Japanese Wikipedia page data to SQL data."
         task :ja => @path.sql.pages.to_s
       end
