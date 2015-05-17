@@ -40,7 +40,7 @@ module WikipediaSearch
           escape_string(shorten_text(@page.text)),
         ]
         @output.print("INSERT INTO wikipedia (id, title, text) VALUES ")
-        @output.print("(#{record_values.join(', ')});")
+        @output.puts("(#{record_values.join(', ')});")
       end
     end
 
