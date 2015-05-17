@@ -2,6 +2,8 @@
 
 set -u
 
+n_tries=3
+
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
 config_dir="${base_dir}/config/sql"
@@ -73,7 +75,7 @@ load_data()
 
 benchmark_load_pgroonga()
 {
-  for i in $(seq 3); do
+  for i in $(seq ${n_tries}); do
     echo "PGroonga: load: ${i}"
     run sudo -u postgres -H psql -d benchmark \
         --command 'DROP INDEX IF EXISTS wikipedia_index_pgroonga'
@@ -94,7 +96,7 @@ benchmark_load_pgroonga()
 
 benchmark_load_pg_bigm()
 {
-  for i in $(seq 3); do
+  for i in $(seq ${n_tries}); do
     echo "pg_bigm: load: ${i}"
     run sudo -u postgres -H psql -d benchmark \
         --command 'DROP INDEX IF EXISTS wikipedia_index_pg_bigm'
@@ -116,7 +118,7 @@ benchmark_load_pg_bigm()
 benchmark_search_pgroonga()
 {
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
-    for i in $(seq 3); do
+    for i in $(seq ${n_tries}); do
       where="text %% '${search_word}'"
       echo "PGroonga: search: ${where}: ${i}"
       time run sudo -u postgres -H psql -d benchmark \
@@ -128,7 +130,7 @@ benchmark_search_pgroonga()
 benchmark_search_pg_bigm()
 {
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
-    for i in $(seq 3); do
+    for i in $(seq ${n_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
       echo "pg_bigm: search: ${where}: ${i}"
