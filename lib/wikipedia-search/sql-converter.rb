@@ -10,7 +10,7 @@ module WikipediaSearch
     class SQLListener < Listener
       private
       def on_start
-        @output.puts("INSERT INTO pages VALUES (id, title, text)")
+        @output.puts("INSERT INTO wikipedia (id, title, text) VALUES")
       end
 
       def on_finish
@@ -29,15 +29,17 @@ module WikipediaSearch
       end
 
       def escape_string(string)
-        escaped_content = string.gsub(/["\\\n]/) do |special_character|
+        escaped_content = string.gsub(/['\\\n]/) do |special_character|
           case special_character
           when "\n"
             "\\n"
+          when "'"
+            "''"
           else
             "\\#{special_character}"
           end
         end
-        "\"#{escaped_content}\""
+        "'#{escaped_content}'"
       end
     end
   end
