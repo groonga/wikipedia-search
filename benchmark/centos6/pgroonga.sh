@@ -19,6 +19,25 @@ run()
   fi
 }
 
+ensure_data()
+{
+  if [ -f "${data_dir}/ja-all-pages.sql" ]; then
+    return
+  fi
+
+  if which rake > /dev/null 2>&1; then
+    run rake data/sql/ja-all-pages.sql
+  else
+    run sudo -H yum install -y epel-release
+    run sudo -H yum install -y p7zip
+    run mkdir -p "${data_dir}"
+    cd "${data_dir}"
+    run wget http://packages.groonga.org/tmp/ja-all-pages.sql.7z
+    run 7z x ja-all-pages.sql.7z
+    cd -
+  fi
+}
+
 setup_postgresql_repository()
 {
   os_version=$(run rpm -qf --queryformat="%{VERSION}" /etc/redhat-release)
@@ -139,6 +158,8 @@ benchmark_search_pg_bigm()
     done
   done
 }
+
+ensure_data
 
 setup_postgresql_repository
 setup_groonga_repository
