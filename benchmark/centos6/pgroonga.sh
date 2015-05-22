@@ -2,7 +2,7 @@
 
 set -u
 
-n_tries=3
+n_tries=1
 
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
