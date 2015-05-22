@@ -23,6 +23,15 @@ run()
   fi
 }
 
+show_environment()
+{
+  echo "CPU:"
+  cat /proc/cpuinfo
+
+  echo "Memory:"
+  free
+}
+
 ensure_data()
 {
   if [ -f "${data_dir}/ja-all-pages.sql" ]; then
@@ -174,6 +183,8 @@ benchmark_search_pg_bigm()
     done
   done
 }
+
+show_environment
 
 ensure_data
 
