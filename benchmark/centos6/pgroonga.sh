@@ -76,35 +76,47 @@ setup_postgresql()
 setup_benchmark_db()
 {
   run sudo -u postgres -H psql \
-      --command 'DROP DATABASE IF EXISTS benchmark'
+      --command 'DROP DATABASE IF EXISTS benchmark_pgroonga'
   run sudo -u postgres -H psql \
-      --command 'CREATE DATABASE benchmark'
-  run sudo -u postgres -H psql -d benchmark \
+      --command 'CREATE DATABASE benchmark_pgroonga'
+  run sudo -u postgres -H psql -d benchmark_pgroonga \
       --command 'CREATE EXTENSION pgroonga'
-  run sudo -u postgres -H psql -d benchmark \
+
+  run sudo -u postgres -H psql \
+      --command 'DROP DATABASE IF EXISTS benchmark_pg_bigm'
+  run sudo -u postgres -H psql \
+      --command 'CREATE DATABASE benchmark_pg_bigm'
+  run sudo -u postgres -H psql -d benchmark_pg_bigm \
       --command 'CREATE EXTENSION pg_bigm'
 }
 
 load_data()
 {
-  run sudo -u postgres -H psql -d benchmark < \
+  echo "PGroonga: data: load:"
+  run sudo -u postgres -H psql -d benchmark_pgroonga < \
       "${config_dir}/schema.postgresql.sql"
-  time run sudo -u postgres -H psql -d benchmark < \
+  time run sudo -u postgres -H psql -d benchmark_pgroonga < \
+       "${data_dir}/ja-all-pages.sql" > /dev/null
+
+  echo "pg_bigm: data: load"
+  run sudo -u postgres -H psql -d benchmark_pg_bigm < \
+      "${config_dir}/schema.postgresql.sql"
+  time run sudo -u postgres -H psql -d benchmark_pg_bigm < \
        "${data_dir}/ja-all-pages.sql" > /dev/null
 }
 
-benchmark_load_pgroonga()
+benchmark_create_index_pgroonga()
 {
   for i in $(seq ${n_load_tries}); do
-    echo "PGroonga: load: ${i}"
-    run sudo -u postgres -H psql -d benchmark \
+    echo "PGroonga: create index: ${i}"
+    run sudo -u postgres -H psql -d benchmark_pgroonga \
         --command 'DROP INDEX IF EXISTS wikipedia_index_pgroonga'
-    time run sudo -u postgres -H psql -d benchmark < \
+    time run sudo -u postgres -H psql -d benchmark_pgroonga < \
          "${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
-      echo "PGroonga: load: size"
-      database_oid=$(sudo -u postgres -H psql -d benchmark \
-                          --command "SELECT datid FROM pg_stat_database WHERE datname = 'benchmark'" | \
+      echo "PGroonga: create index: size"
+      database_oid=$(sudo -u postgres -H psql -d benchmark_pgroonga \
+                          --command "SELECT datid FROM pg_stat_database WHERE datname = 'benchmark_pgroonga'" | \
                         head -3 | \
                         tail -1 | \
                         sed -e 's/ *//g')
@@ -114,17 +126,17 @@ benchmark_load_pgroonga()
   done
 }
 
-benchmark_load_pg_bigm()
+benchmark_create_index_pg_bigm()
 {
   for i in $(seq ${n_load_tries}); do
-    echo "pg_bigm: load: ${i}"
-    run sudo -u postgres -H psql -d benchmark \
+    echo "pg_bigm: create index: ${i}"
+    run sudo -u postgres -H psql -d benchmark_pg_bigm \
         --command 'DROP INDEX IF EXISTS wikipedia_index_pg_bigm'
-    time run sudo -u postgres -H psql -d benchmark < \
+    time run sudo -u postgres -H psql -d benchmark_pg_bigm < \
          "${config_dir}/indexes.pg_bigm.sql"
     if [ ${i} -eq 1 ]; then
-      echo "pg_bigm: load: size"
-      pg_bigm_data_path=$(sudo -u postgres -H psql -d benchmark \
+      echo "pg_bigm: create index: size"
+      pg_bigm_data_path=$(sudo -u postgres -H psql -d benchmark_pg_bigm \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_bigm'" | \
                              head -3 | \
                              tail -1 | \
@@ -141,7 +153,7 @@ benchmark_search_pgroonga()
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: ${where}: ${i}"
-      time run sudo -u postgres -H psql -d benchmark \
+      time run sudo -u postgres -H psql -d benchmark_pgroonga \
            --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
@@ -154,7 +166,7 @@ benchmark_search_pg_bigm()
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
       echo "pg_bigm: search: ${where}: ${i}"
-      time run sudo -u postgres -H psql -d benchmark \
+      time run sudo -u postgres -H psql -d benchmark_pg_bigm \
            --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
@@ -171,8 +183,8 @@ setup_postgresql
 setup_benchmark_db
 load_data
 
-benchmark_load_pgroonga
-benchmark_load_pg_bigm
+benchmark_create_index_pgroonga
+benchmark_create_index_pg_bigm
 
 benchmark_search_pgroonga
 benchmark_search_pg_bigm
