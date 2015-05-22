@@ -160,19 +160,19 @@ benchmark_search_pg_bigm()
   done
 }
 
-# ensure_data
+ensure_data
 
-# setup_postgresql_repository
-# setup_groonga_repository
-# install_pgroonga
-# install_pg_bigm
+setup_postgresql_repository
+setup_groonga_repository
+install_pgroonga
+install_pg_bigm
 
-# setup_postgresql
-# setup_benchmark_db
-# load_data
+setup_postgresql
+setup_benchmark_db
+load_data
 
-# benchmark_load_pgroonga
-# benchmark_load_pg_bigm
+benchmark_load_pgroonga
+benchmark_load_pg_bigm
 
 benchmark_search_pgroonga
 benchmark_search_pg_bigm
