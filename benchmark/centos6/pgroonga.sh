@@ -110,7 +110,7 @@ load_data()
   time run sudo -u postgres -H psql -d ${pgroonga_db} < \
        "${data_dir}/ja-all-pages.sql" > /dev/null
 
-  echo "pg_bigm: data: load"
+  echo "pg_bigm: data: load:"
   run sudo -u postgres -H psql -d ${pg_bigm_db} < \
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pg_bigm_db} < \
@@ -120,13 +120,13 @@ load_data()
 benchmark_create_index_pgroonga()
 {
   for i in $(seq ${n_load_tries}); do
-    echo "PGroonga: create index: ${i}"
+    echo "PGroonga: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pgroonga"
     time run sudo -u postgres -H psql -d ${pgroonga_db} < \
          "${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
-      echo "PGroonga: create index: size"
+      echo "PGroonga: create index: size:"
       database_oid=$(sudo -u postgres -H psql -d ${pgroonga_db} \
                           --command "SELECT datid FROM pg_stat_database WHERE datname = '${pgroonga_db}'" | \
                         head -3 | \
@@ -141,13 +141,13 @@ benchmark_create_index_pgroonga()
 benchmark_create_index_pg_bigm()
 {
   for i in $(seq ${n_load_tries}); do
-    echo "pg_bigm: create index: ${i}"
+    echo "pg_bigm: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pg_bigm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_bigm"
     time run sudo -u postgres -H psql -d ${pg_bigm_db} < \
          "${config_dir}/indexes.pg_bigm.sql"
     if [ ${i} -eq 1 ]; then
-      echo "pg_bigm: create index: size"
+      echo "pg_bigm: create index: size:"
       pg_bigm_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_bigm'" | \
                              head -3 | \
@@ -164,7 +164,7 @@ benchmark_search_pgroonga()
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
-      echo "PGroonga: search: ${where}: ${i}"
+      echo "PGroonga: search: ${where}: ${i}:"
       time run sudo -u postgres -H psql -d ${pgroonga_db} \
            --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
@@ -177,7 +177,7 @@ benchmark_search_pg_bigm()
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
-      echo "pg_bigm: search: ${where}: ${i}"
+      echo "pg_bigm: search: ${where}: ${i}:"
       time run sudo -u postgres -H psql -d ${pg_bigm_db} \
            --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
