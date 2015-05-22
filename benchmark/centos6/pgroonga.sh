@@ -139,7 +139,7 @@ benchmark_search_pgroonga()
 {
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
-      where="text %% '${search_word}'"
+      where="text @@ '${search_word}'"
       echo "PGroonga: search: ${where}: ${i}"
       time run sudo -u postgres -H psql -d benchmark \
            --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
@@ -160,19 +160,19 @@ benchmark_search_pg_bigm()
   done
 }
 
-ensure_data
+# ensure_data
 
-setup_postgresql_repository
-setup_groonga_repository
-install_pgroonga
-install_pg_bigm
+# setup_postgresql_repository
+# setup_groonga_repository
+# install_pgroonga
+# install_pg_bigm
 
-setup_postgresql
-setup_benchmark_db
-load_data
+# setup_postgresql
+# setup_benchmark_db
+# load_data
 
-benchmark_load_pgroonga
-benchmark_load_pg_bigm
+# benchmark_load_pgroonga
+# benchmark_load_pg_bigm
 
 benchmark_search_pgroonga
 benchmark_search_pg_bigm
