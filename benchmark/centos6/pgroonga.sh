@@ -102,6 +102,15 @@ setup_benchmark_db()
       --command "CREATE EXTENSION pg_bigm"
 }
 
+database_oid()
+{
+  sudo -u postgres -H psql \
+       --command "SELECT datid FROM pg_stat_database WHERE datname = '$1'" | \
+    head -3 | \
+    tail -1 | \
+    sed -e 's/ *//g'
+}
+
 load_data()
 {
   echo "PGroonga: data: load:"
@@ -109,12 +118,18 @@ load_data()
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pgroonga_db} < \
        "${data_dir}/ja-all-pages.sql" > /dev/null
+  echo "PGroonga: data: load: size:"
+  run sudo -u postgres -H \
+      sh -c "du -hsc /var/lib/pgsql/9.4/data/base/$(database_oid ${pgroonga_db})/*"
 
   echo "pg_bigm: data: load:"
   run sudo -u postgres -H psql -d ${pg_bigm_db} < \
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pg_bigm_db} < \
        "${data_dir}/ja-all-pages.sql" > /dev/null
+  echo "pg_biggm: data: load: size:"
+  run sudo -u postgres -H \
+      sh -c "du -hsc /var/lib/pgsql/9.4/data/base/$(database_oid ${pg_bigm_db})/*"
 }
 
 benchmark_create_index_pgroonga()
@@ -127,13 +142,8 @@ benchmark_create_index_pgroonga()
          "${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
       echo "PGroonga: create index: size:"
-      database_oid=$(sudo -u postgres -H psql -d ${pgroonga_db} \
-                          --command "SELECT datid FROM pg_stat_database WHERE datname = '${pgroonga_db}'" | \
-                        head -3 | \
-                        tail -1 | \
-                        sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/9.4/data/base/${database_oid}/pgrn*"
+          sh -c "du -hsc /var/lib/pgsql/9.4/data/base/$(database_oid ${pgroonga_db})/pgrn*"
     fi
   done
 }
