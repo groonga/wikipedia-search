@@ -3,7 +3,7 @@
 set -u
 
 n_load_tries=1
-n_search_tries=3
+n_search_tries=10
 
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
