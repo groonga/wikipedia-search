@@ -70,6 +70,12 @@ install_pgroonga()
   run sudo yum makecache
   run sudo yum install -y postgresql94-pgroonga
   run sudo yum install -y groonga-tokenizer-mecab
+
+  # TODO: Remove me when pgroonga-0.6.0 is released.
+  pgroonga_rpm="postgresql94-pgroonga-0.6.0-1.el6.x86_64.rpm"
+  rm -rf "${pgroonga_rpm}"
+  run wget "http://packages.groonga.org/tmp/${pgroonga_rpm}"
+  run sudo rpm -Uvh "${pgroonga_rpm}"
 }
 
 install_pg_bigm()
