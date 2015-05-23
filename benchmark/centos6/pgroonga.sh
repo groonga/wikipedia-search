@@ -181,6 +181,19 @@ benchmark_search_pgroonga()
   done
 }
 
+benchmark_search_pgroonga_force_index_scan()
+{
+  force_index_scan="SET enable_seqscan = off; SET enable_bitmapscan = off;"
+  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+    for i in $(seq ${n_search_tries}); do
+      where="text @@ '${search_word}'"
+      echo "PGroonga: search: force index scan: ${where}: ${i}:"
+      time run sudo -u postgres -H psql -d ${pgroonga_db} \
+           --command "${force_index_scan} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+    done
+  done
+}
+
 benchmark_search_pg_bigm()
 {
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
@@ -211,4 +224,5 @@ benchmark_create_index_pgroonga
 benchmark_create_index_pg_bigm
 
 benchmark_search_pgroonga
+benchmark_search_pgroonga_force_index_scan
 benchmark_search_pg_bigm
