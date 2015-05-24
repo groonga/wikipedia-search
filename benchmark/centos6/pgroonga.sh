@@ -140,6 +140,8 @@ load_data()
 
 benchmark_create_index_pgroonga()
 {
+  run sudo -H /sbin/service postgresql-9.4 restart
+
   for i in $(seq ${n_load_tries}); do
     echo "PGroonga: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
@@ -156,6 +158,8 @@ benchmark_create_index_pgroonga()
 
 benchmark_create_index_pg_bigm()
 {
+  run sudo -H /sbin/service postgresql-9.4 restart
+
   for i in $(seq ${n_load_tries}); do
     echo "pg_bigm: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pg_bigm_db} \
