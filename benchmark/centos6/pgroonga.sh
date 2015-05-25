@@ -231,6 +231,21 @@ benchmark_search_pg_bigm()
   done
 }
 
+benchmark_search_pg_bigm_large_work_mem()
+{
+  work_mem_size='10MB'
+  work_mem="SET work_mem = '${work_mem_size}';"
+  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+    for i in $(seq ${n_search_tries}); do
+      where="text LIKE '%${search_word}%'"
+      where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
+      echo "pg_bigm: search: large work_mem(${work_mem_size}): ${where}: ${i}:"
+      time run sudo -u postgres -H psql -d ${pg_bigm_db} \
+           --command "${work_mem} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+    done
+  done
+}
+
 show_environment
 
 ensure_data
@@ -251,3 +266,4 @@ benchmark_search_pgroonga
 benchmark_search_pgroonga_large_work_mem
 benchmark_search_pgroonga_force_index_scan
 benchmark_search_pg_bigm
+benchmark_search_pg_bigm_large_work_mem
