@@ -42,7 +42,7 @@ ensure_data()
     run rake data/sql/ja-all-pages.sql
   else
     run sudo -H yum install -y epel-release
-    run sudo -H yum install -y xz
+    run sudo -H yum install -y wget xz
     run mkdir -p "${data_dir}"
     cd "${data_dir}"
     run wget http://packages.groonga.org/tmp/ja-all-pages.sql.xz
