@@ -2,6 +2,8 @@
 
 set -u
 
+LANG=C
+
 n_load_tries=1
 n_search_tries=10
 
