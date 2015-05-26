@@ -38,17 +38,18 @@ ensure_data()
     return
   fi
 
-  if which rake > /dev/null 2>&1; then
-    run rake data/sql/ja-all-pages.sql
-  else
-    run sudo -H yum install -y epel-release
-    run sudo -H yum install -y wget xz
-    run mkdir -p "${data_dir}"
-    cd "${data_dir}"
-    run wget --no-verbose http://packages.groonga.org/tmp/ja-all-pages.sql.xz
-    run unxz ja-all-pages.sql.xz
-    cd -
-  fi
+#  if which rake > /dev/null 2>&1; then
+#    run rake data/sql/ja-all-pages.sql
+#    return
+#  fi
+
+  run sudo -H yum install -y epel-release
+  run sudo -H yum install -y wget xz
+  run mkdir -p "${data_dir}"
+  cd "${data_dir}"
+  run wget --no-verbose http://packages.groonga.org/tmp/ja-all-pages.sql.xz
+  run unxz ja-all-pages.sql.xz
+  cd -
 }
 
 setup_postgresql_repository()
