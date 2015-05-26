@@ -45,7 +45,7 @@ ensure_data()
     run sudo -H yum install -y wget xz
     run mkdir -p "${data_dir}"
     cd "${data_dir}"
-    run wget http://packages.groonga.org/tmp/ja-all-pages.sql.xz
+    run wget --no-verbose http://packages.groonga.org/tmp/ja-all-pages.sql.xz
     run unxz ja-all-pages.sql.xz
     cd -
   fi
@@ -74,7 +74,7 @@ install_pgroonga()
   # TODO: Remove me when pgroonga-0.6.0 is released.
   pgroonga_rpm="postgresql94-pgroonga-0.6.0-1.el6.x86_64.rpm"
   rm -rf "${pgroonga_rpm}"
-  run wget "http://packages.groonga.org/tmp/${pgroonga_rpm}"
+  run wget --no-verbose "http://packages.groonga.org/tmp/${pgroonga_rpm}"
   run sudo rpm -Uvh "${pgroonga_rpm}"
 }
 
