@@ -14,8 +14,8 @@ config_dir="${base_dir}/config/sql"
 data_dir="${base_dir}/data/csv"
 benchmark_dir="${base_dir}/benchmark"
 
-pgroonga_db="benchmark_pgroonga"
-pg_bigm_db="benchmark_pg_bigm"
+mroonga_db="benchmark_mroonga"
+innodb_db="benchmark_innodb"
 
 run()
 {
