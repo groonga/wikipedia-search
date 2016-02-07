@@ -240,7 +240,7 @@ benchmark_create_index_mroonga()
     if [ ${i} -eq 1 ]; then
       echo "Mroonga: create index: size:"
       run sudo -u mysql -H \
-          sh -c "du -hsc /var/lib/mysql/data/${mroonga_db}.mrn*"
+          sh -c "du -hsc /var/lib/mysql/${mroonga_db}.mrn*"
     fi
   done
 }
@@ -256,7 +256,7 @@ benchmark_create_index_mroonga()
     if [ ${i} -eq 1 ]; then
       echo "InnoDB: create index: size:"
       run sudo -u mysql -H \
-          sh -c "du -hsc /var/lib/mysql/data/${innodb_db}/*"
+          sh -c "du -hsc /var/lib/mysql/${innodb_db}/*"
     fi
   done
 }
