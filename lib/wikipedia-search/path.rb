@@ -34,6 +34,10 @@ module WikipediaSearch
     def sql
       SQLPath.new(self, @language)
     end
+
+    def csv
+      CSVPath.new(self, @language)
+    end
   end
 
   class WikipediaPath
@@ -193,6 +197,25 @@ module WikipediaSearch
 
     def all_pages
       data_dir + "#{@language}-all-pages.sql"
+    end
+  end
+
+  class CSVPath
+    def initialize(base_path, language)
+      @base_path = base_path
+      @language = language
+    end
+
+    def data_dir
+      @base_path.data_dir + "csv"
+    end
+
+    def pages
+      data_dir + "#{@language}-pages.csv"
+    end
+
+    def all_pages
+      data_dir + "#{@language}-all-pages.csv"
     end
   end
 end

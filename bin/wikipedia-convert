@@ -12,8 +12,9 @@ $LOAD_PATH.unshift(lib_dir_path.to_s)
 
 require "wikipedia-search/groonga-converter"
 require "wikipedia-search/sql-converter"
+require "wikipedia-search/csv-converter"
 
-available_formats = [:groonga, :sql]
+available_formats = [:groonga, :sql, :csv]
 
 options = OpenStruct.new
 options.output = "-"
@@ -52,6 +53,8 @@ when :groonga
   converter_class = WikipediaSearch::GroongaConverter
 when :sql
   converter_class = WikipediaSearch::SQLConverter
+when :csv
+  converter_class = WikipediaSearch::CSVConverter
 end
 converter = converter_class.new(ARGF, converter_options)
 if options.output == "-"

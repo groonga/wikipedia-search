@@ -65,6 +65,7 @@ module WikipediaSearch
         define_data_convert_groonga_tasks
         define_data_convert_droonga_tasks
         define_data_convert_sql_tasks
+        define_data_convert_csv_tasks
       end
     end
 
@@ -156,6 +157,16 @@ module WikipediaSearch
                                             @path.sql.all_pages)
         desc "Convert Japanese Wikipedia page data to SQL data."
         task :ja => @path.sql.pages.to_s
+      end
+    end
+
+    def define_data_convert_csv_tasks
+      namespace :csv do
+        define_wikipedia_data_convert_tasks("csv",
+                                            @path.csv.pages,
+                                            @path.csv.all_pages)
+        desc "Convert Japanese Wikipedia page data to CSV data."
+        task :ja => @path.csv.pages.to_s
       end
     end
 
