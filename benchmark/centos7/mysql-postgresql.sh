@@ -245,7 +245,7 @@ benchmark_create_index_mroonga()
   done
 }
 
-benchmark_create_index_mroonga()
+benchmark_create_index_innodb()
 {
   for i in $(seq ${n_create_index_tries}); do
     echo "InnoDB: create index: ${i}:"
