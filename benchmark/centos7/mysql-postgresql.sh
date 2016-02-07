@@ -181,7 +181,7 @@ load_data_mroonga()
        -e "LOAD DATA LOCAL INFILE '${data_dir}/ja-all-pages.csv' INTO TABLE wikipedia FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'"
   echo "Mroonga: data: load: size:"
   run sudo -u mysql -H \
-      sh -c "du -hsc /var/lib/mysql/data/${mroonga_db}.mrn*"
+      sh -c "du -hsc /var/lib/mysql/${mroonga_db}.mrn*"
 }
 
 load_data_innodb()
@@ -193,7 +193,7 @@ load_data_innodb()
        -e "LOAD DATA LOCAL INFILE '${data_dir}/ja-all-pages.csv' INTO TABLE wikipedia FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '\"'"
   echo "InnoDB: data: load: size:"
   run sudo -u mysql -H \
-      sh -c "du -hsc /var/lib/mysql/data/${innodb_db}/*"
+      sh -c "du -hsc /var/lib/mysql/${innodb_db}/*"
 }
 
 load_data_pgroonga()
