@@ -90,6 +90,7 @@ install_groonga_tokenizer_mecab()
 install_mroonga()
 {
   run sudo yum install -y mysql57-community-mroonga
+  echo "log-bin" | run sudo tee --append /etc/my.cnf
   echo "character-set-server=utf8mb4" | run sudo tee --append /etc/my.cnf
   echo "validate-password=off" | run sudo tee --append /etc/my.cnf
   run sudo systemctl start mysqld
