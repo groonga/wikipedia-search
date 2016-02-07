@@ -111,7 +111,7 @@ install_pg_bigm()
   run wget http://osdn.dl.osdn.jp/pgbigm/63792/pg_bigm-1.1-20150910.tar.gz
   run tar xvf pg_bigm-1.1-20150910.tar.gz
   run cd pg_bigm-1.1-20150910
-  run PATH=/usr/pgsql-9.5/bin:$PATH make USE_PGXS=1
+  run env PATH=/usr/pgsql-9.5/bin:$PATH make USE_PGXS=1
   run sudo env PATH=/usr/pgsql-9.5/bin:$PATH make USE_PGXS=1 install
   run cd ..
 }
