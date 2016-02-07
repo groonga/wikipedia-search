@@ -1,1 +1,1 @@
-ALTER TABLE wikipedia ADD FULLTEXT INDEX (title, text);
+ALTER TABLE wikipedia ADD FULLTEXT INDEX fulltext_index (title, text);
