@@ -6,7 +6,7 @@ LANG=C
 
 n_load_tries=1
 n_create_index_tries=1
-n_search_tries=10
+n_search_tries=5
 
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
