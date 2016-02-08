@@ -194,7 +194,7 @@ benchmark_search_mroonga()
       where="MATCH(title, text) AGAINST('*D+ ${search_word}' IN BOOLEAN MODE)"
       echo "Mroonga: search: ${where}: ${i}:"
       time run mysql -u root ${mroonga_db} \
-           -e "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+           -e "SELECT SQL_NO_CACHE COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
 }
@@ -209,7 +209,7 @@ benchmark_search_innodb()
       where="MATCH(title, text) AGAINST('${query}' IN BOOLEAN MODE)"
       echo "InnoDB: search: ${where}: ${i}:"
       time run mysql -u root ${innodb_db} \
-           -e "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+           -e "SELECT SQL_NO_CACHE COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
 }
