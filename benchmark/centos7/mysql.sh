@@ -111,6 +111,8 @@ setup_benchmark_db()
 
 load_data_mroonga()
 {
+  run sudo -H systemctl restart mysqld
+
   echo "Mroonga: data: load:"
   run mysql -u root ${mroonga_db} < \
       "${config_dir}/schema.mroonga.sql"
@@ -123,6 +125,8 @@ load_data_mroonga()
 
 load_data_innodb()
 {
+  run sudo -H systemctl restart mysqld
+
   echo "InnoDB: data: load:"
   run mysql -u root ${innodb_db} < \
       "${config_dir}/schema.innodb.sql"
@@ -141,6 +145,8 @@ load_data()
 
 benchmark_create_index_mroonga()
 {
+  run sudo -H systemctl restart mysqld
+
   for i in $(seq ${n_create_index_tries}); do
     echo "Mroonga: create index: ${i}:"
     mysql -u root ${mroonga_db} \
@@ -157,6 +163,8 @@ benchmark_create_index_mroonga()
 
 benchmark_create_index_innodb()
 {
+  run sudo -H systemctl restart mysqld
+
   for i in $(seq ${n_create_index_tries}); do
     echo "InnoDB: create index: ${i}:"
     mysql -u root ${innodb_db} \
@@ -179,6 +187,8 @@ benchmark_create_index()
 
 benchmark_search_mroonga()
 {
+  run sudo -H systemctl restart mysqld
+
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="MATCH(title, text) AGAINST('*D+ ${search_word}' IN BOOLEAN MODE)"
@@ -191,6 +201,8 @@ benchmark_search_mroonga()
 
 benchmark_search_innodb()
 {
+  run sudo -H systemctl restart mysqld
+
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="MATCH(title, text) AGAINST('${search_word}' IN BOOLEAN MODE)"

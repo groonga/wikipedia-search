@@ -134,6 +134,8 @@ database_oid()
 
 load_data_pgroonga()
 {
+  run sudo -H systemctl restart postgresql-9.5
+
   echo "PGroonga: data: load:"
   run sudo -u postgres -H psql -d ${pgroonga_db} < \
       "${config_dir}/schema.postgresql.sql"
@@ -146,6 +148,8 @@ load_data_pgroonga()
 
 load_data_pg_bigm()
 {
+  run sudo -H systemctl restart postgresql-9.5
+
   echo "pg_bigm: data: load:"
   run sudo -u postgres -H psql -d ${pg_bigm_db} < \
       "${config_dir}/schema.postgresql.sql"
@@ -211,6 +215,8 @@ benchmark_create_index()
 
 benchmark_search_pgroonga()
 {
+  run sudo -H systemctl restart postgresql-9.5
+
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
@@ -225,6 +231,8 @@ benchmark_search_pgroonga()
 
 benchmark_search_pg_bigm()
 {
+  run sudo -H systemctl restart postgresql-9.5
+
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
