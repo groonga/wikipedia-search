@@ -205,7 +205,8 @@ benchmark_search_innodb()
 
   cat "${benchmark_dir}/search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
-      where="MATCH(title, text) AGAINST('${search_word}' IN BOOLEAN MODE)"
+      query=$(echo ${search_word} | sed -e "s/ OR / /g")
+      where="MATCH(title, text) AGAINST('${query}' IN BOOLEAN MODE)"
       echo "InnoDB: search: ${where}: ${i}:"
       time run mysql -u root ${innodb_db} \
            -e "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
