@@ -68,7 +68,7 @@ setup_mysql_repository()
 
 setup_groonga_repository()
 {
-  if ! rpm -q groonga-release > /dev/null 1>&2; then
+  if ! rpm -q groonga-release > /dev/null 2>&1; then
     run sudo yum install -y \
         http://packages.groonga.org/centos/groonga-release-1.1.0-1.noarch.rpm
   fi
