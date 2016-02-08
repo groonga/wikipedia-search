@@ -193,7 +193,8 @@ benchmark_search_mroonga()
     for i in $(seq ${n_search_tries}); do
       where="MATCH(title, text) AGAINST('*D+ ${search_word}' IN BOOLEAN MODE)"
       echo "Mroonga: search: ${where}: ${i}:"
-      time run mysql -u root ${mroonga_db} \
+      time run mysql --default-character-set=utf8mb4 \
+           -u root ${mroonga_db} \
            -e "SELECT SQL_NO_CACHE COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
@@ -208,7 +209,8 @@ benchmark_search_innodb()
       query=$(echo ${search_word} | sed -e "s/ OR / /g")
       where="MATCH(title, text) AGAINST('${query}' IN BOOLEAN MODE)"
       echo "InnoDB: search: ${where}: ${i}:"
-      time mysql -u root ${innodb_db} \
+      time mysql --default-character-set=utf8mb4 \
+           -u root ${innodb_db} \
            -e "SELECT SQL_NO_CACHE COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
