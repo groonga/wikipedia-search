@@ -9,14 +9,18 @@ require "wikipedia-search/path"
 module WikipediaSearch
   class Task
     class << self
-      def define
-        new.define
+      def define(languages=nil)
+        languages ||= ["ja", "en"]
+        languages.each do |language|
+          new(language).define
+        end
       end
     end
     include Rake::DSL
 
-    def initialize
-      @path = Path.new(".", "ja")
+    def initialize(language)
+      @language = language
+      @path = Path.new(".", @language)
     end
 
     def define
@@ -42,8 +46,8 @@ module WikipediaSearch
             WikipediaSearch::Downloader.download(path.pages_url, path.pages)
           end
 
-          desc "Download the latest Japanese Wikipedia pages."
-          task :ja => path.pages.to_s
+          desc "Download the latest #{@language} Wikipedia pages."
+          task @language => path.pages.to_s
         end
 
         namespace :titles do
@@ -52,8 +56,8 @@ module WikipediaSearch
                                                  path.titles)
           end
 
-          desc "Download the latest Japanese Wikipedia titles."
-          task :ja => path.titles.to_s
+          desc "Download the latest #{@language} Wikipedia titles."
+          task @language => path.titles.to_s
         end
       end
     end
@@ -110,8 +114,8 @@ module WikipediaSearch
         define_wikipedia_data_convert_tasks("groonga",
                                             @path.groonga.pages,
                                             @path.groonga.all_pages)
-        desc "Convert Japanese Wikipedia page data to Groonga page data."
-        task :ja => @path.groonga.pages.to_s
+        desc "Convert #{@language} Wikipedia page data to Groonga page data."
+        task @language => @path.groonga.pages.to_s
       end
     end
 
@@ -144,8 +148,8 @@ module WikipediaSearch
                @path.groonga.all_pages.to_s)
           end
 
-          desc "Convert Japanese Wikipedia page data to Droonga page data."
-          task :ja => @path.droonga.pages.to_s
+          desc "Convert #{@language} Wikipedia page data to Droonga page data."
+          task @language => @path.droonga.pages.to_s
         end
       end
     end
@@ -155,8 +159,8 @@ module WikipediaSearch
         define_wikipedia_data_convert_tasks("sql",
                                             @path.sql.pages,
                                             @path.sql.all_pages)
-        desc "Convert Japanese Wikipedia page data to SQL data."
-        task :ja => @path.sql.pages.to_s
+        desc "Convert #{@language} Wikipedia page data to SQL data."
+        task @language => @path.sql.pages.to_s
       end
     end
 
@@ -165,8 +169,8 @@ module WikipediaSearch
         define_wikipedia_data_convert_tasks("csv",
                                             @path.csv.pages,
                                             @path.csv.all_pages)
-        desc "Convert Japanese Wikipedia page data to CSV data."
-        task :ja => @path.csv.pages.to_s
+        desc "Convert #{@language} Wikipedia page data to CSV data."
+        task @language => @path.csv.pages.to_s
       end
     end
 
