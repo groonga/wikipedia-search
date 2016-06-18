@@ -47,7 +47,7 @@ module WikipediaSearch
     end
 
     def download_base_url
-      "http://dumps.wikimedia.org/#{@language}wiki/latest"
+      "https://dumps.wikimedia.org/#{@language}wiki/latest"
     end
 
     def pages
