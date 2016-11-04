@@ -244,7 +244,7 @@ benchmark_search_mroonga()
 {
   run sudo -H systemctl restart mysqld
 
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="MATCH(title, text) AGAINST('*D+ ${search_word}' IN BOOLEAN MODE)"
       echo "Mroonga: search: ${where}: ${i}:"
@@ -259,7 +259,7 @@ benchmark_search_innodb_ngram()
 {
   run sudo -H systemctl restart mysqld
 
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       query=$(echo ${search_word} | sed -e "s/ OR / /g")
       where="MATCH(title, text) AGAINST('${query}' IN BOOLEAN MODE)"
@@ -275,7 +275,7 @@ benchmark_search_innodb_mecab()
 {
   run sudo -H systemctl restart mysqld
 
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       query=$(echo ${search_word} | sed -e "s/ OR / /g")
       where="MATCH(title, text) AGAINST('${query}' IN BOOLEAN MODE)"

@@ -178,7 +178,7 @@ benchmark_create_index_pg_bigm()
 
 benchmark_search_pgroonga()
 {
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: ${where}: ${i}:"
@@ -192,7 +192,7 @@ benchmark_search_pgroonga_large_work_mem()
 {
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: large work_mem(${work_mem_size}): ${where}: ${i}:"
@@ -205,7 +205,7 @@ benchmark_search_pgroonga_large_work_mem()
 benchmark_search_pgroonga_force_index_scan()
 {
   force_index_scan="SET enable_seqscan = off; SET enable_bitmapscan = off;"
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: force index scan: ${where}: ${i}:"
@@ -217,7 +217,7 @@ benchmark_search_pgroonga_force_index_scan()
 
 benchmark_search_pg_bigm()
 {
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
@@ -232,7 +232,7 @@ benchmark_search_pg_bigm_large_work_mem()
 {
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")

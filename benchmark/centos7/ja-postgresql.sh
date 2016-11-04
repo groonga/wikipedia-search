@@ -157,7 +157,7 @@ load_data_pg_bigm()
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pg_bigm_db} \
        --command "COPY wikipedia FROM '${data_dir}/ja-all-pages.csv' WITH CSV ENCODING 'utf8'"
-  echo "pg_biggm: data: load: size:"
+  echo "pg_bigm: data: load: size:"
   run sudo -u postgres -H \
       sh -c "du -hsc /var/lib/pgsql/9.5/data/base/$(database_oid ${pg_bigm_db})/*"
 }
@@ -221,7 +221,7 @@ benchmark_search_pgroonga()
 
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: ${where}: ${i}:"
@@ -237,7 +237,7 @@ benchmark_search_pg_bigm()
 
   work_mem_size='10MB'
   work_mem="SET work_mem = '${work_mem_size}';"
-  cat "${benchmark_dir}/search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/ja-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
