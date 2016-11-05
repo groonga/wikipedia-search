@@ -161,6 +161,11 @@ module WikipediaSearch
                                             @path.sql.all_pages)
         desc "Convert #{@language} Wikipedia page data to SQL data."
         task @language => @path.sql.pages.to_s
+
+        namespace @language do
+          desc "Convert #{@language} Wikipedia all page data to SQL data."
+          task :all => @path.sql.all_pages.to_s
+        end
       end
     end
 
@@ -171,6 +176,11 @@ module WikipediaSearch
                                             @path.csv.all_pages)
         desc "Convert #{@language} Wikipedia page data to CSV data."
         task @language => @path.csv.pages.to_s
+
+        namespace @language do
+          desc "Convert #{@language} Wikipedia all page data to CSV data."
+          task :all => @path.csv.all_pages.to_s
+        end
       end
     end
 
