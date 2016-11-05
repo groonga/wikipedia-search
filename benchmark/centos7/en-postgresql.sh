@@ -283,6 +283,7 @@ benchmark_search_pgroonga()
   work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   search_path="SET search_path = \"\${user}\", public, pgroonga, pg_catalog;"
+  enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
@@ -290,6 +291,7 @@ benchmark_search_pgroonga()
       run sudo -u postgres -H psql -d ${pgroonga_db} \
           --command "${work_mem}" \
           --command "${search_path}" \
+          --command "${enable_seqscan}" \
           --command "\\timing" \
           --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
@@ -300,6 +302,7 @@ benchmark_search_pg_trgm()
 {
   work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
+  enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
@@ -307,6 +310,7 @@ benchmark_search_pg_trgm()
       echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}: ${i}:"
       run sudo -u postgres -H psql -d ${pg_trgm_db} \
           --command "${work_mem}" \
+          --command "${enable_seqscan}" \
           --command "\\timing" \
           --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
@@ -317,6 +321,7 @@ benchmark_search_textsearch()
 {
   work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
+  enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       target="to_tsvector('english', text)"
@@ -325,6 +330,7 @@ benchmark_search_textsearch()
       echo "textsearch: search: work_mem(${work_mem_size}): ${where}: ${i}:"
       run sudo -u postgres -H psql -d ${textsearch_db} \
           --command "${work_mem}" \
+          --command "${enable_seqscan}" \
           --command "\\timing" \
           --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
