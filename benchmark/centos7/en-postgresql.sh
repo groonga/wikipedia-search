@@ -16,7 +16,7 @@ data=en-all-pages.csv
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
 config_dir="${base_dir}/config/sql"
-data_dir="${base_dir}/data/sql"
+data_dir="${base_dir}/data/csv"
 benchmark_dir="${base_dir}/benchmark"
 
 pgroonga_db="benchmark_pgroonga"
