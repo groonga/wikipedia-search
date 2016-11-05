@@ -320,7 +320,7 @@ benchmark_search_textsearch()
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
       target="to_tsvector('english', text)"
-      query="'$(echo ${search_word} | sed -e 's/ OR / | /g')'"
+      query="to_tsquery('english', '$(echo ${search_word} | sed -e 's/ OR / | /g')')"
       where="${target} @@ ${query}"
       echo "textsearch: search: work_mem(${work_mem_size}): ${where}: ${i}:"
       run sudo -u postgres -H psql -d ${textsearch_db} \
