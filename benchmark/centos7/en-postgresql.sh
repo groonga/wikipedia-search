@@ -228,8 +228,13 @@ benchmark_create_index_pg_trgm()
     if [ ${i} -eq 1 ]; then
       run sudo -H systemctl restart postgresql-${pg_version}
       echo "pg_trgm: create index: size:"
+      pg_trgm_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
+                               --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_trgm'" | \
+                             head -3 | \
+                             tail -1 | \
+                             sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pg_trgm_db})/pgrn*"
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_trgm_data_path}"
     fi
   done
 }
@@ -247,8 +252,13 @@ benchmark_create_index_textsearch()
     if [ ${i} -eq 1 ]; then
       run sudo -H systemctl restart postgresql-${pg_version}
       echo "textsearch: create index: size:"
+      textsearch_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
+                               --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_textsearch'" | \
+                             head -3 | \
+                             tail -1 | \
+                             sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${textsearch_db})/pgrn*"
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${textsearch_data_path}"
     fi
   done
 }
@@ -296,7 +306,9 @@ benchmark_search_textsearch()
   work_mem="SET work_mem = '${work_mem_size}';"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     for i in $(seq ${n_search_tries}); do
-      where="text @@ '$(echo ${search_word} | sed -e 's/ OR / | /g')'"
+      target="to_tsvector('english', text)"
+      query="'$(echo ${search_word} | sed -e 's/ OR / | /g')'"
+      where="${target} @@ ${query}"
       echo "textsearch: search: work_mem(${work_mem_size}): ${where}: ${i}:"
       time run sudo -u postgres -H psql -d ${textsearch_db} \
            --command "${work_mem} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
