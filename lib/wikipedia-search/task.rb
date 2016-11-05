@@ -89,7 +89,7 @@ module WikipediaSearch
         end
         max_n_characters = ENV["MAX_N_CHARACTERS"]
         if max_n_characters.nil? or max_n_characters.empty?
-          max_n_characters = 10 * 1024
+          max_n_characters = -1
         end
         command_line = base_command_line.dup
         command_line << "--max-n-records"
