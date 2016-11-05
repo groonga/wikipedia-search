@@ -11,6 +11,8 @@ n_search_tries=5
 pg_version=9.6
 pg_version_short=96
 
+data=en-all-pages.csv
+
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
 config_dir="${base_dir}/config/sql"
@@ -41,7 +43,7 @@ show_environment()
 
 ensure_data()
 {
-  if [ -f "${data_dir}/en-all-pages.sql" ]; then
+  if [ -f "${data_dir}/${data}" ]; then
     return
   fi
 
@@ -49,8 +51,8 @@ ensure_data()
   run sudo -H yum install -y wget pxz
   run mkdir -p "${data_dir}"
   cd "${data_dir}"
-  run wget --no-verbose http://packages.groonga.org/tmp/en-all-pages.csv.xz
-  run pxz --keep --decompress en-all-pages.csv.xz
+  run wget --no-verbose http://packages.groonga.org/tmp/${data}.xz
+  run pxz --keep --decompress ${data}.xz
   cd -
 }
 
@@ -144,7 +146,7 @@ load_data_pgroonga()
   run sudo -u postgres -H psql -d ${pgroonga_db} < \
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pgroonga_db} \
-       --command "COPY wikipedia FROM '${data_dir}/en-all-pages.csv' WITH CSV ENCODING 'utf8'"
+       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
@@ -161,7 +163,7 @@ load_data_pg_trgm()
   run sudo -u postgres -H psql -d ${pg_trgm_db} < \
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${pg_trgm_db} \
-       --command "COPY wikipedia FROM '${data_dir}/en-all-pages.csv' WITH CSV ENCODING 'utf8'"
+       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
@@ -178,7 +180,7 @@ load_data_textsearch()
   run sudo -u postgres -H psql -d ${textsearch_db} < \
       "${config_dir}/schema.postgresql.sql"
   time run sudo -u postgres -H psql -d ${textsearch_db} \
-       --command "COPY wikipedia FROM '${data_dir}/en-all-pages.csv' WITH CSV ENCODING 'utf8'"
+       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
