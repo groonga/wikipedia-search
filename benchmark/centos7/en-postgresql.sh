@@ -51,7 +51,9 @@ ensure_data()
   run sudo -H yum install -y wget pxz
   run mkdir -p "${data_dir}"
   cd "${data_dir}"
-  run wget --no-verbose http://packages.groonga.org/tmp/${data}.xz
+  if [ ! -f "${data}.xz" ]; then
+    run wget --no-verbose http://packages.groonga.org/tmp/${data}.xz
+  fi
   run pxz --keep --decompress ${data}.xz
   cd -
 }
