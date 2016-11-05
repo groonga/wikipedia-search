@@ -145,8 +145,9 @@ load_data_pgroonga()
   echo "PGroonga: data: load:"
   run sudo -u postgres -H psql -d ${pgroonga_db} < \
       "${config_dir}/schema.postgresql.sql"
-  time run sudo -u postgres -H psql -d ${pgroonga_db} \
-       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
+  run sudo -u postgres -H psql -d ${pgroonga_db} \
+      --command "\\timing" \
+      --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
@@ -162,8 +163,9 @@ load_data_pg_trgm()
   echo "pg_trgm: data: load:"
   run sudo -u postgres -H psql -d ${pg_trgm_db} < \
       "${config_dir}/schema.postgresql.sql"
-  time run sudo -u postgres -H psql -d ${pg_trgm_db} \
-       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
+  run sudo -u postgres -H psql -d ${pg_trgm_db} \
+      --command "\\timing" \
+      --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
@@ -179,8 +181,9 @@ load_data_textsearch()
   echo "textsearch: data: load:"
   run sudo -u postgres -H psql -d ${textsearch_db} < \
       "${config_dir}/schema.postgresql.sql"
-  time run sudo -u postgres -H psql -d ${textsearch_db} \
-       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
+  run sudo -u postgres -H psql -d ${textsearch_db} \
+      --command "\\timing" \
+      --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
   run sudo -H systemctl restart postgresql-${pg_version}
 
@@ -204,8 +207,9 @@ benchmark_create_index_pgroonga()
     echo "PGroonga: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pgroonga"
-    time run sudo -u postgres -H psql -d ${pgroonga_db} < \
-         "${config_dir}/indexes.pgroonga.sql"
+    run sudo -u postgres -H psql -d ${pgroonga_db} \
+        --command "\\timing" \
+        --command "\\i ${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
       run sudo -H systemctl restart postgresql-${pg_version}
       echo "PGroonga: create index: size:"
@@ -223,12 +227,13 @@ benchmark_create_index_pg_trgm()
     echo "pg_trgm: create index: ${i}:"
     run sudo -u postgres -H psql -d ${pg_trgm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_trgm"
-    time run sudo -u postgres -H psql -d ${pg_trgm_db} < \
-         "${config_dir}/indexes.pg_trgm.sql"
+    run sudo -u postgres -H psql -d ${pg_trgm_db} \
+        --command "\\timing" \
+        --command "\\i ${config_dir}/indexes.pg_trgm.sql"
     if [ ${i} -eq 1 ]; then
       run sudo -H systemctl restart postgresql-${pg_version}
       echo "pg_trgm: create index: size:"
-      pg_trgm_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
+      pg_trgm_data_path=$(sudo -u postgres -H psql -d ${pg_trgm_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_trgm'" | \
                              head -3 | \
                              tail -1 | \
@@ -247,12 +252,13 @@ benchmark_create_index_textsearch()
     echo "textsearch: create index: ${i}:"
     run sudo -u postgres -H psql -d ${textsearch_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_textsearch"
-    time run sudo -u postgres -H psql -d ${textsearch_db} < \
-         "${config_dir}/indexes.textsearch.sql"
+    run sudo -u postgres -H psql -d ${textsearch_db} \
+        --command "\\timing" \
+        --command "\\i ${config_dir}/indexes.textsearch.sql"
     if [ ${i} -eq 1 ]; then
       run sudo -H systemctl restart postgresql-${pg_version}
       echo "textsearch: create index: size:"
-      textsearch_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
+      textsearch_data_path=$(sudo -u postgres -H psql -d ${textsearch_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_textsearch'" | \
                              head -3 | \
                              tail -1 | \
@@ -279,8 +285,11 @@ benchmark_search_pgroonga()
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
       echo "PGroonga: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      time run sudo -u postgres -H psql -d ${pgroonga_db} \
-           --command "${work_mem} ${search_path} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      run sudo -u postgres -H psql -d ${pgroonga_db} \
+          --command "${work_mem}" \
+          --command "${search_path}" \
+          --command "\\timing" \
+          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
 }
@@ -294,8 +303,10 @@ benchmark_search_pg_trgm()
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
       echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      time run sudo -u postgres -H psql -d ${pg_trgm_db} \
-           --command "${work_mem} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      run sudo -u postgres -H psql -d ${pg_trgm_db} \
+          --command "${work_mem}" \
+          --command "\\timing" \
+          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
 }
@@ -310,8 +321,10 @@ benchmark_search_textsearch()
       query="'$(echo ${search_word} | sed -e 's/ OR / | /g')'"
       where="${target} @@ ${query}"
       echo "textsearch: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      time run sudo -u postgres -H psql -d ${textsearch_db} \
-           --command "${work_mem} SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      run sudo -u postgres -H psql -d ${textsearch_db} \
+          --command "${work_mem}" \
+          --command "\\timing" \
+          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
     done
   done
 }
