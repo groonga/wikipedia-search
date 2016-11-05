@@ -304,6 +304,13 @@ benchmark_search_textsearch()
   done
 }
 
+benchmark_search()
+{
+  benchmark_search_pgroonga
+  benchmark_search_pg_trgm
+  benchmark_search_textsearch
+}
+
 show_environment
 
 ensure_data
