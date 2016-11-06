@@ -29,6 +29,7 @@ pg_version_short=96
 pg_bigm_version=1.2-20161011
 
 data="${language}-${data_size}-pages.csv"
+word_list="${language}-search-words.list"
 
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
@@ -398,7 +399,7 @@ benchmark_search_pgroonga()
 {
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
-  cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/${word_list}" | while read search_word; do
     commands=()
     commands+=("--command" "${work_mem}")
     commands+=("--command" "${enable_seqscan}")
@@ -416,7 +417,7 @@ benchmark_search_pg_bigm()
 {
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
-  cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/${word_list}" | while read search_word; do
     commands=()
     commands+=("--command" "${work_mem}")
     commands+=("--command" "${enable_seqscan}")
@@ -435,7 +436,7 @@ benchmark_search_pg_trgm()
 {
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
-  cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/${word_list}" | while read search_word; do
     commands=()
     commands+=("--command" "${work_mem}")
     commands+=("--command" "${enable_seqscan}")
@@ -454,7 +455,7 @@ benchmark_search_textsearch()
 {
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
-  cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+  cat "${benchmark_dir}/${word_list}" | while read search_word; do
     commands=()
     commands+=("--command" "${work_mem}")
     commands+=("--command" "${enable_seqscan}")
