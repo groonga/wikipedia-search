@@ -285,14 +285,12 @@ benchmark_search_pgroonga()
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     commands=()
-    commands=("--command" "${work_mem}" "${commands[@]}")
-    commands=("--command" "${enable_seqscan}" "${commands[@]}")
-    commands=("--command" "\\timing" "${commands[@]}")
+    commands+=("--command" "${work_mem}")
+    commands+=("--command" "${enable_seqscan}")
+    commands+=("--command" "\\timing")
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
-      commands=("--command"
-                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
-                "${commands[@]}")
+      commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "PGroonga: search: work_mem(${work_mem_size}): ${where}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} "${commands[@]}"
@@ -306,15 +304,13 @@ benchmark_search_pg_trgm()
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     commands=()
-    commands=("--command" "${work_mem}" "${commands[@]}")
-    commands=("--command" "${enable_seqscan}" "${commands[@]}")
-    commands=("--command" "\\timing" "${commands[@]}")
+    commands+=("--command" "${work_mem}")
+    commands+=("--command" "${enable_seqscan}")
+    commands+=("--command" "\\timing")
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
-      commands=("--command"
-                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
-                "${commands[@]}")
+      commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}"
     run sudo -u postgres -H psql -d ${pg_trgm_db} "${commands[@]}"
@@ -328,16 +324,14 @@ benchmark_search_textsearch()
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
     commands=()
-    commands=("--command" "${work_mem}" "${commands[@]}")
-    commands=("--command" "${enable_seqscan}" "${commands[@]}")
-    commands=("--command" "\\timing" "${commands[@]}")
+    commands+=("--command" "${work_mem}")
+    commands+=("--command" "${enable_seqscan}")
+    commands+=("--command" "\\timing")
     for i in $(seq ${n_search_tries}); do
       target="to_tsvector('english', text)"
       query="to_tsquery('english', '$(echo ${search_word} | sed -e 's/ OR / | /g')')"
       where="${target} @@ ${query}"
-      commands=("--command"
-                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
-                "${commands[@]}")
+      commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "textsearch: search: work_mem(${work_mem_size}): ${where}"
     run sudo -u postgres -H psql -d ${textsearch_db} "${commands[@]}"
