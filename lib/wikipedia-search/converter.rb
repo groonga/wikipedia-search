@@ -53,6 +53,8 @@ module WikipediaSearch
         case name
         when "page"
           @page = Page.new
+        when "redirect"
+          @page.redirect = attributes["title"]
         end
       end
 
@@ -62,11 +64,15 @@ module WikipediaSearch
           if @max_n_records and @n_records >= @max_n_records
             throw(@abort_tag)
           end
-          on_page(@page)
-          @first_page = false
-          @n_records += 1
+          if target_page?
+            on_page(@page)
+            @first_page = false
+            @n_records += 1
+          end
         when "title"
           @page.title = @text_stack.last
+        when "ns"
+          @page.namespace = Integer(@text_stack.last)
         when "id"
           @page.id ||= Integer(@text_stack.last)
         when "text"
@@ -84,6 +90,10 @@ module WikipediaSearch
       end
 
       private
+      def target_page?
+        @page.redirect.nil? and @page.namespace == 0
+      end
+
       def first_page?
         @first_page
       end
@@ -105,9 +115,15 @@ module WikipediaSearch
       end
 
       class Page
-        attr_accessor :id, :title, :text
+        attr_accessor :namespace
+        attr_accessor :id
+        attr_accessor :redirect
+        attr_accessor :title
+        attr_accessor :text
         def initialize
+          @namespace = nil
           @id = nil
+          @redirect = nil
           @title = nil
           @text = nil
         end
