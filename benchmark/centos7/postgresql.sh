@@ -330,7 +330,7 @@ benchmark_create_index_pg_bigm()
                              tail -1 | \
                              sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_bigm_data_path}"
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_bigm_data_path}*"
     fi
   done
 }
@@ -356,7 +356,7 @@ benchmark_create_index_pg_trgm()
                              tail -1 | \
                              sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_trgm_data_path}"
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_trgm_data_path}*"
     fi
   done
 }
@@ -382,7 +382,7 @@ benchmark_create_index_textsearch()
                              tail -1 | \
                              sed -e 's/ *//g')
       run sudo -u postgres -H \
-          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${textsearch_data_path}"
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${textsearch_data_path}*"
     fi
   done
 }
