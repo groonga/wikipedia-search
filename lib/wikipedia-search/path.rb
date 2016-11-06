@@ -97,8 +97,8 @@ module WikipediaSearch
       config_dir + "indexes.grn"
     end
 
-    def pages
-      data_dir + "#{@language}-pages.grn"
+    def partial_pages
+      data_dir + "#{@language}-partial-pages.grn"
     end
 
     def all_pages
@@ -136,8 +136,8 @@ module WikipediaSearch
       @base_path.data_dir + "droonga"
     end
 
-    def pages
-      data_dir + "#{@language}-pages.jsons"
+    def partial_pages
+      data_dir + "#{@language}-partial-pages.jsons"
     end
 
     def all_pages
@@ -191,8 +191,8 @@ module WikipediaSearch
       config_dir + "indexes.pgroonga.sql"
     end
 
-    def pages
-      data_dir + "#{@language}-pages.sql"
+    def partial_pages
+      data_dir + "#{@language}-partial-pages.sql"
     end
 
     def all_pages
@@ -210,8 +210,8 @@ module WikipediaSearch
       @base_path.data_dir + "csv"
     end
 
-    def pages
-      data_dir + "#{@language}-pages.csv"
+    def partial_pages
+      data_dir + "#{@language}-partial-pages.csv"
     end
 
     def all_pages

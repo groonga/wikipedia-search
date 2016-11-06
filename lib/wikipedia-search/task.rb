@@ -73,7 +73,7 @@ module WikipediaSearch
       end
     end
 
-    def define_wikipedia_data_convert_tasks(format, pages_path, all_pages_path)
+    def define_wikipedia_data_convert_tasks(label, format, path)
       base_command_line = [
         "bzcat",
         Shellwords.escape(@path.wikipedia.pages.to_s),
@@ -82,7 +82,8 @@ module WikipediaSearch
         "bin/wikipedia-convert",
         "--format", format,
       ]
-      file pages_path.to_s => @path.wikipedia.pages.to_s do
+
+      file path.partial_pages.to_s => @path.wikipedia.pages.to_s do
         max_n_records = ENV["MAX_N_RECORDS"]
         if max_n_records.nil? or max_n_records.empty?
           max_n_records = 5000
@@ -97,25 +98,29 @@ module WikipediaSearch
         command_line << "--max-n-characters"
         command_line << max_n_characters.to_s
         command_line << "--output"
-        command_line << pages_path.to_s
+        command_line << path.partial_pages.to_s
         sh(command_line.join(" "))
       end
 
-      file all_pages_path.to_s => @path.wikipedia.pages.to_s do
+      file path.all_pages.to_s => @path.wikipedia.pages.to_s do
         command_line = base_command_line.dup
         command_line << "--output"
-        command_line << all_pages_path.to_s
+        command_line << path.all_pages.to_s
         sh(command_line.join(" "))
+      end
+
+      namespace @language do
+        desc "Convert #{@language} Wikipedia partial page data to #{label} data."
+        task :partial => path.partial_pages.to_s
+
+        desc "Convert #{@language} Wikipedia all page data to #{label} data."
+        task :all => path.all_pages.to_s
       end
     end
 
     def define_data_convert_groonga_tasks
       namespace :groonga do
-        define_wikipedia_data_convert_tasks("groonga",
-                                            @path.groonga.pages,
-                                            @path.groonga.all_pages)
-        desc "Convert #{@language} Wikipedia page data to Groonga page data."
-        task @language => @path.groonga.pages.to_s
+        define_wikipedia_data_convert_tasks("Groonga", "groonga", @path.groonga)
       end
     end
 
@@ -136,10 +141,10 @@ module WikipediaSearch
         task :schema => @path.droonga.schema.to_s
 
         namespace :pages do
-          file @path.droonga.pages.to_s => @path.groonga.pages.to_s do
+          file @path.droonga.partial_pages.to_s => @path.groonga.partial_pages.to_s do
             sh("grn2drn",
-               "--output", @path.droonga.pages.to_s,
-               @path.groonga.pages.to_s)
+               "--output", @path.droonga.partial_pages.to_s,
+               @path.groonga.partial_pages.to_s)
           end
 
           file @path.droonga.all_pages.to_s => @path.groonga.all_pages.to_s do
@@ -148,39 +153,26 @@ module WikipediaSearch
                @path.groonga.all_pages.to_s)
           end
 
-          desc "Convert #{@language} Wikipedia page data to Droonga page data."
-          task @language => @path.droonga.pages.to_s
+          namespace @language do
+            desc "Convert #{@language} Wikipedia partial page data to Droonga data."
+            task :partial => @path.droonga.partial_pages.to_s
+
+            desc "Convert #{@language} Wikipedia all page data to Droonga data."
+            task :all => @path.droonga.all_pages.to_s
+          end
         end
       end
     end
 
     def define_data_convert_sql_tasks
       namespace :sql do
-        define_wikipedia_data_convert_tasks("sql",
-                                            @path.sql.pages,
-                                            @path.sql.all_pages)
-        desc "Convert #{@language} Wikipedia page data to SQL data."
-        task @language => @path.sql.pages.to_s
-
-        namespace @language do
-          desc "Convert #{@language} Wikipedia all page data to SQL data."
-          task :all => @path.sql.all_pages.to_s
-        end
+        define_wikipedia_data_convert_tasks("SQL", "sql", @path.sql)
       end
     end
 
     def define_data_convert_csv_tasks
       namespace :csv do
-        define_wikipedia_data_convert_tasks("csv",
-                                            @path.csv.pages,
-                                            @path.csv.all_pages)
-        desc "Convert #{@language} Wikipedia page data to CSV data."
-        task @language => @path.csv.pages.to_s
-
-        namespace @language do
-          desc "Convert #{@language} Wikipedia all page data to CSV data."
-          task :all => @path.csv.all_pages.to_s
-        end
+        define_wikipedia_data_convert_tasks("CSV", "csv", @path.csv)
       end
     end
 
@@ -194,7 +186,7 @@ module WikipediaSearch
     def define_local_groonga_tasks
       namespace :groonga do
         desc "Load data."
-        task :load => @path.groonga.pages.to_s do
+        task :load => @path.groonga.partial_pages.to_s do
           rm_rf(@path.groonga.database_dir.to_s)
           mkdir_p(@path.groonga.database_dir.to_s)
           groonga_run(@path.groonga.schema.to_s)
@@ -223,7 +215,7 @@ module WikipediaSearch
         node_ids = [0, 1]
 
         load_dependencies = [
-          @path.droonga.pages.to_s,
+          @path.droonga.partial_pages.to_s,
           @path.droonga.schema.to_s,
         ]
         desc "Load data."
@@ -248,7 +240,7 @@ module WikipediaSearch
             sh("droonga-send",
                "--server", "droonga:#{host}:#{port}/droonga",
                "--report-throughput",
-               @path.droonga.pages.to_s)
+               @path.droonga.partial_pages.to_s)
           ensure
             stop_processes(pids)
           end
