@@ -27,6 +27,7 @@ load --table Pages
 <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
   <page>
     <title>Title</title>
+    <ns>0</ns>
     <id>1</id>
     <revision>
       <id>1001</id>
@@ -48,6 +49,7 @@ load --table Pages
 <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
   <page>
     <title>Title1</title>
+    <ns>0</ns>
     <id>1</id>
     <revision>
       <id>1001</id>
@@ -77,6 +79,7 @@ load --table Pages
 <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
   <page>
     <title>Title</title>
+    <ns>0</ns>
     <id>1</id>
     <revision>
       <id>1001</id>
@@ -98,6 +101,7 @@ load --table Pages
 <mediawiki xmlns="http://www.mediawiki.org/xml/export-0.8/">
   <page>
     <title>Title</title>
+    <ns>0</ns>
     <id>1</id>
     <revision>
       <id>1001</id>
