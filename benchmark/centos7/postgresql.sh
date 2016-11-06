@@ -36,10 +36,10 @@ config_dir="${base_dir}/config/sql"
 data_dir="${base_dir}/data/csv"
 benchmark_dir="${base_dir}/benchmark"
 
-pgroonga_db="benchmark_pgroonga"
-pg_bigm_db="benchmark_pg_bigm"
-pg_trgm_db="benchmark_pg_trgm"
-textsearch_db="benchmark_textsearch"
+pgroonga_db="benchmark_pgroonga_${language}"
+pg_bigm_db="benchmark_pg_bigm_${language}"
+pg_trgm_db="benchmark_pg_trgm_${language}"
+textsearch_db="benchmark_textsearch_${language}"
 
 targets=("pgroonga")
 if [ "${language}" = "ja" ]; then
