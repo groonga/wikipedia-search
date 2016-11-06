@@ -133,13 +133,25 @@ install_extensions()
   done
 }
 
+restart_postgresql()
+{
+  if type systemctl 2>&1 > /dev/null; then
+    run sudo -H systemctl restart postgresql-${pg_version}
+  else
+    run sudo -H service postgresql-${pg_version} restart
+  fi
+}
+
 setup_postgresql()
 {
   run sudo -H \
       env PGSETUP_INITDB_OPTIONS="--locale=C --encoding=UTF-8" \
       /usr/pgsql-${pg_version}/bin/postgresql${pg_version_short}-setup initdb
-  run sudo -H systemctl enable postgresql-${pg_version}
-  run sudo -H systemctl start postgresql-${pg_version}
+  if type systemctl 2>&1 > /dev/null; then
+    run sudo -H systemctl start postgresql-${pg_version}
+  else
+    run sudo -H service postgresql-${pg_version} start
+  fi
 }
 
 setup_benchmark_db_pgroonga()
@@ -198,7 +210,7 @@ database_oid()
 
 load_data_pgroonga()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "PGroonga: data: load:"
   run sudo -u postgres -H psql -d ${pgroonga_db} < \
@@ -207,7 +219,7 @@ load_data_pgroonga()
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "PGroonga: data: load: size:"
   run sudo -u postgres -H \
@@ -216,7 +228,7 @@ load_data_pgroonga()
 
 load_data_pg_trgm()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "pg_trgm: data: load:"
   run sudo -u postgres -H psql -d ${pg_trgm_db} < \
@@ -225,7 +237,7 @@ load_data_pg_trgm()
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "pg_trgm: data: load: size:"
   run sudo -u postgres -H \
@@ -234,7 +246,7 @@ load_data_pg_trgm()
 
 load_data_pg_bigm()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "pg_bigm: data: load:"
   run sudo -u postgres -H psql -d ${pg_bigm_db} < \
@@ -243,7 +255,7 @@ load_data_pg_bigm()
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "pg_bigm: data: load: size:"
   run sudo -u postgres -H \
@@ -252,7 +264,7 @@ load_data_pg_bigm()
 
 load_data_textsearch()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "textsearch: data: load:"
   run sudo -u postgres -H psql -d ${textsearch_db} < \
@@ -261,7 +273,7 @@ load_data_textsearch()
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   echo "textsearch: data: load: size:"
   run sudo -u postgres -H \
@@ -277,7 +289,7 @@ load_data()
 
 benchmark_create_index_pgroonga()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   for i in $(seq ${n_load_tries}); do
     echo "PGroonga: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
@@ -288,7 +300,7 @@ benchmark_create_index_pgroonga()
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
-      run sudo -H systemctl restart postgresql-${pg_version}
+      restart_postgresql
       echo "PGroonga: create index: size:"
       run sudo -u postgres -H \
           sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pgroonga_db})/pgrn*"
@@ -298,7 +310,7 @@ benchmark_create_index_pgroonga()
 
 benchmark_create_index_pg_bigm()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   for i in $(seq ${n_load_tries}); do
     echo "pg_bigm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
@@ -309,7 +321,7 @@ benchmark_create_index_pg_bigm()
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pg_bigm.sql"
     if [ ${i} -eq 1 ]; then
-      run sudo -H systemctl restart postgresql-${pg_version}
+      restart_postgresql
       echo "pg_bigm: create index: size:"
       pg_bigm_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_bigm'" | \
@@ -324,7 +336,7 @@ benchmark_create_index_pg_bigm()
 
 benchmark_create_index_pg_trgm()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   for i in $(seq ${n_load_tries}); do
     echo "pg_trgm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
@@ -335,7 +347,7 @@ benchmark_create_index_pg_trgm()
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pg_trgm.sql"
     if [ ${i} -eq 1 ]; then
-      run sudo -H systemctl restart postgresql-${pg_version}
+      restart_postgresql
       echo "pg_trgm: create index: size:"
       pg_trgm_data_path=$(sudo -u postgres -H psql -d ${pg_trgm_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_trgm'" | \
@@ -350,7 +362,7 @@ benchmark_create_index_pg_trgm()
 
 benchmark_create_index_textsearch()
 {
-  run sudo -H systemctl restart postgresql-${pg_version}
+  restart_postgresql
 
   for i in $(seq ${n_load_tries}); do
     echo "textsearch: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
@@ -361,7 +373,7 @@ benchmark_create_index_textsearch()
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.textsearch.sql"
     if [ ${i} -eq 1 ]; then
-      run sudo -H systemctl restart postgresql-${pg_version}
+      restart_postgresql
       echo "textsearch: create index: size:"
       textsearch_data_path=$(sudo -u postgres -H psql -d ${textsearch_db} \
                                --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_textsearch'" | \
