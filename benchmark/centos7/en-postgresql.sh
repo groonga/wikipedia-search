@@ -282,19 +282,20 @@ benchmark_search_pgroonga()
 {
   work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
-  search_path="SET search_path = \"\${user}\", public, pgroonga, pg_catalog;"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+    commands=()
+    commands=("--command" "${work_mem}" "${commands[@]}")
+    commands=("--command" "${enable_seqscan}" "${commands[@]}")
+    commands=("--command" "\\timing" "${commands[@]}")
     for i in $(seq ${n_search_tries}); do
       where="text @@ '${search_word}'"
-      echo "PGroonga: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      run sudo -u postgres -H psql -d ${pgroonga_db} \
-          --command "${work_mem}" \
-          --command "${search_path}" \
-          --command "${enable_seqscan}" \
-          --command "\\timing" \
-          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      commands=("--command"
+                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+                "${commands[@]}")
     done
+    echo "PGroonga: search: work_mem(${work_mem_size}): ${where}:"
+    run sudo -u postgres -H psql -d ${pgroonga_db} "${commands[@]}"
   done
 }
 
@@ -304,16 +305,19 @@ benchmark_search_pg_trgm()
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+    commands=()
+    commands=("--command" "${work_mem}" "${commands[@]}")
+    commands=("--command" "${enable_seqscan}" "${commands[@]}")
+    commands=("--command" "\\timing" "${commands[@]}")
     for i in $(seq ${n_search_tries}); do
       where="text LIKE '%${search_word}%'"
       where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
-      echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      run sudo -u postgres -H psql -d ${pg_trgm_db} \
-          --command "${work_mem}" \
-          --command "${enable_seqscan}" \
-          --command "\\timing" \
-          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      commands=("--command"
+                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+                "${commands[@]}")
     done
+    echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}"
+    run sudo -u postgres -H psql -d ${pg_trgm_db} "${commands[@]}"
   done
 }
 
@@ -323,17 +327,20 @@ benchmark_search_textsearch()
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+    commands=()
+    commands=("--command" "${work_mem}" "${commands[@]}")
+    commands=("--command" "${enable_seqscan}" "${commands[@]}")
+    commands=("--command" "\\timing" "${commands[@]}")
     for i in $(seq ${n_search_tries}); do
       target="to_tsvector('english', text)"
       query="to_tsquery('english', '$(echo ${search_word} | sed -e 's/ OR / | /g')')"
       where="${target} @@ ${query}"
-      echo "textsearch: search: work_mem(${work_mem_size}): ${where}: ${i}:"
-      run sudo -u postgres -H psql -d ${textsearch_db} \
-          --command "${work_mem}" \
-          --command "${enable_seqscan}" \
-          --command "\\timing" \
-          --command "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+      commands=("--command"
+                "SELECT COUNT(*) FROM wikipedia WHERE ${where}"
+                "${commands[@]}")
     done
+    echo "textsearch: search: work_mem(${work_mem_size}): ${where}"
+    run sudo -u postgres -H psql -d ${textsearch_db} "${commands[@]}"
   done
 }
 
