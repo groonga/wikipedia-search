@@ -2,16 +2,33 @@
 
 set -u
 
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 LANGUAGE DATA_SIZE"
+  echo " e.g.: $0 en partial"
+  echo " e.g.: $0 ja partial"
+  echo " e.g.: $0 en all"
+  echo " e.g.: $0 ja all"
+  exit 1
+fi
+
+language="$1"
+data_size="$2"
+
 LANG=C
 
 n_load_tries=1
 n_create_index_tries=1
 n_search_tries=5
 
+work_mem_size='64MB'
+mainenance_work_mem_size='256MB'
+
 pg_version=9.6
 pg_version_short=96
 
-data=en-all-pages.csv
+pg_bigm_version=1.2-20161011
+
+data="${language}-${data_size}-pages.csv"
 
 script_dir=$(cd "$(dirname $0)"; pwd)
 base_dir="${script_dir}/../.."
@@ -20,8 +37,17 @@ data_dir="${base_dir}/data/csv"
 benchmark_dir="${base_dir}/benchmark"
 
 pgroonga_db="benchmark_pgroonga"
+pg_bigm_db="benchmark_pg_bigm"
 pg_trgm_db="benchmark_pg_trgm"
 textsearch_db="benchmark_textsearch"
+
+targets=("pgroonga")
+if [ "${language}" = "ja" ]; then
+  targets+=("pg_bigm")
+else
+  targets+=("pg_trgm")
+  targets+=("textsearch")
+fi
 
 run()
 {
@@ -82,9 +108,29 @@ install_pg_trgm()
   run sudo yum install -y postgresql${pg_version_short}-contrib
 }
 
+install_pg_bigm()
+{
+  run sudo yum install -y postgresql${pg_version_short}-devel gcc
+  pg_bigm_base_name=pg_bigm-${pg_bigm_version}
+  run wget -O ${pg_bigm_base_name}.tar.gz \
+      https://ja.osdn.net/projects/pgbigm/downloads/66565/${pg_bigm_base_name}.tar.gz/
+  run tar xvf ${pg_bigm_base_name}.tar.gz
+  run cd ${pg_bigm_base_name}
+  run env PATH=/usr/pgsql-${pg_version}/bin:$PATH make USE_PGXS=1
+  run sudo env PATH=/usr/pgsql-${pg_version}/bin:$PATH make USE_PGXS=1 install
+  run cd ..
+}
+
 install_textsearch()
 {
   :
+}
+
+install_extensions()
+{
+  for target in "${targets[@]}"; do
+    install_${target}
+  done
 }
 
 setup_postgresql()
@@ -104,6 +150,16 @@ setup_benchmark_db_pgroonga()
       --command "CREATE DATABASE ${pgroonga_db}"
   run sudo -u postgres -H psql -d ${pgroonga_db} \
       --command "CREATE EXTENSION pgroonga"
+}
+
+setup_benchmark_db_pg_bigm()
+{
+  run sudo -u postgres -H psql \
+      --command "DROP DATABASE IF EXISTS ${pg_bigm_db}"
+  run sudo -u postgres -H psql \
+      --command "CREATE DATABASE ${pg_bigm_db}"
+  run sudo -u postgres -H psql -d ${pg_bigm_db} \
+      --command "CREATE EXTENSION pg_bigm"
 }
 
 setup_benchmark_db_pg_trgm()
@@ -126,9 +182,9 @@ setup_benchmark_db_textsearch()
 
 setup_benchmark_db()
 {
-  setup_benchmark_db_pgroonga
-  setup_benchmark_db_pg_trgm
-  setup_benchmark_db_textsearch
+  for target in "${targets[@]}"; do
+    setup_benchmark_db_${target}
+  done
 }
 
 database_oid()
@@ -176,6 +232,24 @@ load_data_pg_trgm()
       sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pg_trgm_db})/*"
 }
 
+load_data_pg_bigm()
+{
+  run sudo -H systemctl restart postgresql-${pg_version}
+
+  echo "pg_bigm: data: load:"
+  run sudo -u postgres -H psql -d ${pg_bigm_db} < \
+      "${config_dir}/schema.postgresql.sql"
+  run sudo -u postgres -H psql -d ${pg_bigm_db} \
+      --command "\\timing" \
+      --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
+
+  run sudo -H systemctl restart postgresql-${pg_version}
+
+  echo "pg_bigm: data: load: size:"
+  run sudo -u postgres -H \
+      sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pg_bigm_db})/*"
+}
+
 load_data_textsearch()
 {
   run sudo -H systemctl restart postgresql-${pg_version}
@@ -196,9 +270,9 @@ load_data_textsearch()
 
 load_data()
 {
-  load_data_pgroonga
-  load_data_pg_trgm
-  load_data_textsearch
+  for target in "${targets[@]}"; do
+    load_data_${target}
+  done
 }
 
 benchmark_create_index_pgroonga()
@@ -206,10 +280,11 @@ benchmark_create_index_pgroonga()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "PGroonga: create index: ${i}:"
+    echo "PGroonga: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pgroonga"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
+        --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pgroonga.sql"
     if [ ${i} -eq 1 ]; then
@@ -221,15 +296,42 @@ benchmark_create_index_pgroonga()
   done
 }
 
+benchmark_create_index_pg_bigm()
+{
+  run sudo -H systemctl restart postgresql-${pg_version}
+
+  for i in $(seq ${n_load_tries}); do
+    echo "pg_bigm: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
+    run sudo -u postgres -H psql -d ${pg_bigm_db} \
+        --command "DROP INDEX IF EXISTS wikipedia_index_pg_bigm"
+    run sudo -u postgres -H psql -d ${pg_bigm_db} \
+        --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
+        --command "\\timing" \
+        --command "\\i ${config_dir}/indexes.pg_bigm.sql"
+    if [ ${i} -eq 1 ]; then
+      run sudo -H systemctl restart postgresql-${pg_version}
+      echo "pg_bigm: create index: size:"
+      pg_bigm_data_path=$(sudo -u postgres -H psql -d ${pg_bigm_db} \
+                               --command "SELECT pg_relation_filepath(oid) FROM pg_class WHERE relname = 'wikipedia_index_pg_bigm'" | \
+                             head -3 | \
+                             tail -1 | \
+                             sed -e 's/ *//g')
+      run sudo -u postgres -H \
+          sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/${pg_bigm_data_path}"
+    fi
+  done
+}
+
 benchmark_create_index_pg_trgm()
 {
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "pg_trgm: create index: ${i}:"
+    echo "pg_trgm: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
     run sudo -u postgres -H psql -d ${pg_trgm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_trgm"
     run sudo -u postgres -H psql -d ${pg_trgm_db} \
+        --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pg_trgm.sql"
     if [ ${i} -eq 1 ]; then
@@ -251,10 +353,11 @@ benchmark_create_index_textsearch()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "textsearch: create index: ${i}:"
+    echo "textsearch: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
     run sudo -u postgres -H psql -d ${textsearch_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_textsearch"
     run sudo -u postgres -H psql -d ${textsearch_db} \
+        --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.textsearch.sql"
     if [ ${i} -eq 1 ]; then
@@ -273,14 +376,13 @@ benchmark_create_index_textsearch()
 
 benchmark_create_index()
 {
-  benchmark_create_index_pgroonga
-  benchmark_create_index_pg_trgm
-  benchmark_create_index_textsearch
+  for target in "${targets[@]}"; do
+    benchmark_create_index_${target}
+  done
 }
 
 benchmark_search_pgroonga()
 {
-  work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
@@ -297,9 +399,27 @@ benchmark_search_pgroonga()
   done
 }
 
+benchmark_search_pg_bigm()
+{
+  work_mem="SET work_mem = '${work_mem_size}';"
+  enable_seqscan="SET enable_seqscan = no;"
+  cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
+    commands=()
+    commands+=("--command" "${work_mem}")
+    commands+=("--command" "${enable_seqscan}")
+    commands+=("--command" "\\timing")
+    for i in $(seq ${n_search_tries}); do
+      where="text LIKE '%${search_word}%'"
+      where=$(echo $where | sed -e "s/ OR /%' OR text LIKE '%/g")
+      commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
+    done
+    echo "pg_bigm: search: work_mem(${work_mem_size}): ${where}"
+    run sudo -u postgres -H psql -d ${pg_bigm_db} "${commands[@]}"
+  done
+}
+
 benchmark_search_pg_trgm()
 {
-  work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
@@ -319,7 +439,6 @@ benchmark_search_pg_trgm()
 
 benchmark_search_textsearch()
 {
-  work_mem_size='64MB'
   work_mem="SET work_mem = '${work_mem_size}';"
   enable_seqscan="SET enable_seqscan = no;"
   cat "${benchmark_dir}/en-search-words.list" | while read search_word; do
@@ -340,9 +459,9 @@ benchmark_search_textsearch()
 
 benchmark_search()
 {
-  benchmark_search_pgroonga
-  benchmark_search_pg_trgm
-  benchmark_search_textsearch
+  for target in "${targets[@]}"; do
+    benchmark_search_${target}
+  done
 }
 
 show_environment
@@ -351,9 +470,8 @@ ensure_data
 
 setup_postgresql_repository
 setup_groonga_repository
-install_pgroonga
-install_pg_trgm
-install_textsearch
+
+install_extensions
 
 setup_postgresql
 setup_benchmark_db
