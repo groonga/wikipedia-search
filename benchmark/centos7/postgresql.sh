@@ -144,12 +144,13 @@ restart_postgresql()
 
 setup_postgresql()
 {
-  run sudo -H \
-      env PGSETUP_INITDB_OPTIONS="--locale=C --encoding=UTF-8" \
-      /usr/pgsql-${pg_version}/bin/postgresql${pg_version_short}-setup initdb
   if type systemctl 2>&1 > /dev/null; then
+    run sudo -H \
+        env PGSETUP_INITDB_OPTIONS="--locale=C --encoding=UTF-8" \
+        /usr/pgsql-${pg_version}/bin/postgresql${pg_version_short}-setup initdb
     run sudo -H systemctl start postgresql-${pg_version}
   else
+    run sudo -H service postgresql-${pg_version} initdb C
     run sudo -H service postgresql-${pg_version} start
   fi
 }
