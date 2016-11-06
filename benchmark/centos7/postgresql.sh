@@ -21,7 +21,7 @@ n_create_index_tries=1
 n_search_tries=5
 
 work_mem_size='64MB'
-mainenance_work_mem_size='256MB'
+maintenance_work_mem_size='256MB'
 
 pg_version=9.6
 pg_version_short=96
@@ -280,7 +280,7 @@ benchmark_create_index_pgroonga()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "PGroonga: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
+    echo "PGroonga: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pgroonga"
     run sudo -u postgres -H psql -d ${pgroonga_db} \
@@ -301,7 +301,7 @@ benchmark_create_index_pg_bigm()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "pg_bigm: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
+    echo "pg_bigm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
     run sudo -u postgres -H psql -d ${pg_bigm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_bigm"
     run sudo -u postgres -H psql -d ${pg_bigm_db} \
@@ -327,7 +327,7 @@ benchmark_create_index_pg_trgm()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "pg_trgm: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
+    echo "pg_trgm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
     run sudo -u postgres -H psql -d ${pg_trgm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_trgm"
     run sudo -u postgres -H psql -d ${pg_trgm_db} \
@@ -353,7 +353,7 @@ benchmark_create_index_textsearch()
   run sudo -H systemctl restart postgresql-${pg_version}
 
   for i in $(seq ${n_load_tries}); do
-    echo "textsearch: create index: maintenance_work_mem(${maintenance_work_mem}): ${i}:"
+    echo "textsearch: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
     run sudo -u postgres -H psql -d ${textsearch_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_textsearch"
     run sudo -u postgres -H psql -d ${textsearch_db} \
