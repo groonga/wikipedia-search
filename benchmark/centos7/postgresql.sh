@@ -20,7 +20,7 @@ n_load_tries=1
 n_create_index_tries=1
 n_search_tries=5
 
-work_mem_size='64MB'
+work_mem_size='256MB'
 maintenance_work_mem_size='512MB'
 
 pg_version=9.6
