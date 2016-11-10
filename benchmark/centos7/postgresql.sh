@@ -59,6 +59,11 @@ run()
   fi
 }
 
+setup_kernel()
+{
+  run sudo sysctl -w vm.overcommit_memory=1
+}
+
 show_environment()
 {
   echo "CPU:"
@@ -477,6 +482,8 @@ benchmark_search()
     benchmark_search_${target}
   done
 }
+
+setup_kernel
 
 show_environment
 
