@@ -424,7 +424,7 @@ benchmark_search_pgroonga_command()
     commands=()
     commands+=("--command" "\\timing")
     for i in $(seq ${n_search_tries}); do
-      commands+=("--command" "SELECT pgroonga.command('select ' || pgroonga.table_name('wikipedia_index_pgroonga') || ' --match_columns text --query \"${search_word}\" --limit 0 --output_columns _id")
+      commands+=("--command" "SELECT pgroonga.command('select ' || pgroonga.table_name('wikipedia_index_pgroonga') || ' --match_columns text --query \"${search_word}\" --limit 0 --output_columns _id'")
     done
     echo "PGroonga: command: search: ${search_word}:"
     run sudo -u postgres -H psql -d ${pgroonga_db} "${commands[@]}"
