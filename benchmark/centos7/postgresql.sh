@@ -233,7 +233,7 @@ load_data_pgroonga()
       sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pgroonga_db})/*"
 
   echo "PGroonga: data: load: statistics"
-select="SELECT
+  select="SELECT
     AVG(char_length(title)) as title_char_length_avg,
     MIN(char_length(title)) as title_char_length_min,
     MAX(char_length(title)) as title_char_length_max,
