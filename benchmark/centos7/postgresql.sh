@@ -231,6 +231,28 @@ load_data_pgroonga()
   echo "PGroonga: data: load: size:"
   run sudo -u postgres -H \
       sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pgroonga_db})/*"
+
+  echo "PGroonga: data: load: statistics"
+  select=$(cat <<EOF)
+SELECT
+    AVG(char_length(title)) as title_char_length_avg,
+    MIN(char_length(title)) as title_char_length_min,
+    MAX(char_length(title)) as title_char_length_max,
+    AVG(octet_length(title)) as title_byte_length_avg,
+    MIN(octet_length(title)) as title_byte_length_min,
+    MAX(octet_length(title)) as title_byte_length_max,
+    AVG(char_length(text)) as text_char_length_avg,
+    MIN(char_length(text)) as text_char_length_min,
+    MAX(char_length(text)) as text_char_length_max,
+    AVG(octet_length(text)) as text_byte_length_avg,
+    MIN(octet_length(text)) as text_byte_length_min,
+    MAX(octet_length(text)) as text_byte_length_max
+  FROM
+    wikipedia;
+EOF
+  run sudo -u postgres -H psql -d ${pgroonga_db} \
+      --command "\\timing" \
+      --command "${select}"
 }
 
 load_data_pg_trgm()
