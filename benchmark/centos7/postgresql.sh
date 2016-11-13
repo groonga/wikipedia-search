@@ -163,39 +163,39 @@ setup_postgresql()
 
 setup_benchmark_db_pgroonga()
 {
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "DROP DATABASE IF EXISTS ${pgroonga_db}"
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "CREATE DATABASE ${pgroonga_db}"
-  run sudo -u postgres -H psql -d ${pgroonga_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
       --command "CREATE EXTENSION pgroonga"
 }
 
 setup_benchmark_db_pg_bigm()
 {
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "DROP DATABASE IF EXISTS ${pg_bigm_db}"
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "CREATE DATABASE ${pg_bigm_db}"
-  run sudo -u postgres -H psql -d ${pg_bigm_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} \
       --command "CREATE EXTENSION pg_bigm"
 }
 
 setup_benchmark_db_pg_trgm()
 {
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "DROP DATABASE IF EXISTS ${pg_trgm_db}"
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "CREATE DATABASE ${pg_trgm_db}"
-  run sudo -u postgres -H psql -d ${pg_trgm_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} \
       --command "CREATE EXTENSION pg_trgm"
 }
 
 setup_benchmark_db_textsearch()
 {
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "DROP DATABASE IF EXISTS ${textsearch_db}"
-  run sudo -u postgres -H psql \
+  run sudo -u postgres -H psql --echo-queries \
       --command "CREATE DATABASE ${textsearch_db}"
 }
 
@@ -208,7 +208,7 @@ setup_benchmark_db()
 
 database_oid()
 {
-  sudo -u postgres -H psql \
+  sudo -u postgres -H psql --echo-queries \
        --command "SELECT datid FROM pg_stat_database WHERE datname = '$1'" | \
     head -3 | \
     tail -1 | \
@@ -220,9 +220,9 @@ load_data_pgroonga()
   restart_postgresql
 
   echo "PGroonga: data: load:"
-  run sudo -u postgres -H psql -d ${pgroonga_db} < \
+  run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} < \
       "${config_dir}/schema.postgresql.sql"
-  run sudo -u postgres -H psql -d ${pgroonga_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
@@ -250,7 +250,7 @@ SELECT
   FROM
     wikipedia;
 EOF
-  run sudo -u postgres -H psql -d ${pgroonga_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
       --command "\\timing" \
       --command "${select}"
 }
@@ -260,9 +260,9 @@ load_data_pg_trgm()
   restart_postgresql
 
   echo "pg_trgm: data: load:"
-  run sudo -u postgres -H psql -d ${pg_trgm_db} < \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} < \
       "${config_dir}/schema.postgresql.sql"
-  run sudo -u postgres -H psql -d ${pg_trgm_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} \
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
@@ -278,9 +278,9 @@ load_data_pg_bigm()
   restart_postgresql
 
   echo "pg_bigm: data: load:"
-  run sudo -u postgres -H psql -d ${pg_bigm_db} < \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} < \
       "${config_dir}/schema.postgresql.sql"
-  run sudo -u postgres -H psql -d ${pg_bigm_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} \
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
@@ -296,9 +296,9 @@ load_data_textsearch()
   restart_postgresql
 
   echo "textsearch: data: load:"
-  run sudo -u postgres -H psql -d ${textsearch_db} < \
+  run sudo -u postgres -H psql --echo-queries -d ${textsearch_db} < \
       "${config_dir}/schema.postgresql.sql"
-  run sudo -u postgres -H psql -d ${textsearch_db} \
+  run sudo -u postgres -H psql --echo-queries -d ${textsearch_db} \
       --command "\\timing" \
       --command "COPY wikipedia FROM '${data_dir}/${data}' WITH CSV ENCODING 'utf8'"
 
@@ -322,9 +322,9 @@ benchmark_create_index_pgroonga()
 
   for i in $(seq ${n_load_tries}); do
     echo "PGroonga: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
-    run sudo -u postgres -H psql -d ${pgroonga_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pgroonga"
-    run sudo -u postgres -H psql -d ${pgroonga_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
         --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pgroonga.sql"
@@ -343,9 +343,9 @@ benchmark_create_index_pg_bigm()
 
   for i in $(seq ${n_load_tries}); do
     echo "pg_bigm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
-    run sudo -u postgres -H psql -d ${pg_bigm_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_bigm"
-    run sudo -u postgres -H psql -d ${pg_bigm_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} \
         --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pg_bigm.sql"
@@ -372,9 +372,9 @@ benchmark_create_index_pg_trgm()
 
   for i in $(seq ${n_load_tries}); do
     echo "pg_trgm: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
-    run sudo -u postgres -H psql -d ${pg_trgm_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_pg_trgm"
-    run sudo -u postgres -H psql -d ${pg_trgm_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} \
         --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.pg_trgm.sql"
@@ -401,9 +401,9 @@ benchmark_create_index_textsearch()
 
   for i in $(seq ${n_load_tries}); do
     echo "textsearch: create index: maintenance_work_mem(${maintenance_work_mem_size}): ${i}:"
-    run sudo -u postgres -H psql -d ${textsearch_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${textsearch_db} \
         --command "DROP INDEX IF EXISTS wikipedia_index_textsearch"
-    run sudo -u postgres -H psql -d ${textsearch_db} \
+    run sudo -u postgres -H psql --echo-queries -d ${textsearch_db} \
         --command "SET maintenance_work_mem = '${maintenance_work_mem_size}';" \
         --command "\\timing" \
         --command "\\i ${config_dir}/indexes.textsearch.sql"
@@ -445,7 +445,8 @@ benchmark_search_pgroonga()
       commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "PGroonga: search: work_mem(${work_mem_size}): ${where}:"
-    run sudo -u postgres -H psql -d ${pgroonga_db} "${commands[@]}"
+    run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
+        "${commands[@]}"
   done
 }
 
@@ -459,7 +460,8 @@ benchmark_search_pgroonga_command()
       commands+=("--command" "SELECT pgroonga.command('select ' || pgroonga.table_name('wikipedia_index_pgroonga') || ' --match_columns text --query \"${search_word}\" --limit 0 --output_columns _id')")
     done
     echo "PGroonga: command: search: ${search_word}:"
-    run sudo -u postgres -H psql -d ${pgroonga_db} "${commands[@]}"
+    run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
+        "${commands[@]}"
   done
 }
 
@@ -478,7 +480,8 @@ benchmark_search_pg_bigm()
       commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "pg_bigm: search: work_mem(${work_mem_size}): ${where}"
-    run sudo -u postgres -H psql -d ${pg_bigm_db} "${commands[@]}"
+    run sudo -u postgres -H psql --echo-queries -d ${pg_bigm_db} \
+        "${commands[@]}"
   done
 }
 
@@ -497,7 +500,8 @@ benchmark_search_pg_trgm()
       commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "pg_trgm: search: work_mem(${work_mem_size}): ${where}"
-    run sudo -u postgres -H psql -d ${pg_trgm_db} "${commands[@]}"
+    run sudo -u postgres -H psql --echo-queries -d ${pg_trgm_db} \
+        "${commands[@]}"
   done
 }
 
@@ -517,7 +521,8 @@ benchmark_search_textsearch()
       commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
     done
     echo "textsearch: search: work_mem(${work_mem_size}): ${where}"
-    run sudo -u postgres -H psql -d ${textsearch_db} "${commands[@]}"
+    run sudo -u postgres -H psql --echo-queries -d ${textsearch_db} \
+        "${commands[@]}"
   done
 }
 
