@@ -233,8 +233,7 @@ load_data_pgroonga()
       sh -c "du -hsc /var/lib/pgsql/${pg_version}/data/base/$(database_oid ${pgroonga_db})/*"
 
   echo "PGroonga: data: load: statistics"
-  select=$(cat <<EOF)
-SELECT
+select="SELECT
     AVG(char_length(title)) as title_char_length_avg,
     MIN(char_length(title)) as title_char_length_min,
     MAX(char_length(title)) as title_char_length_max,
@@ -248,8 +247,7 @@ SELECT
     MIN(octet_length(text)) as text_byte_length_min,
     MAX(octet_length(text)) as text_byte_length_max
   FROM
-    wikipedia;
-EOF
+    wikipedia;"
   run sudo -u postgres -H psql --echo-queries -d ${pgroonga_db} \
       --command "\\timing" \
       --command "${select}"
