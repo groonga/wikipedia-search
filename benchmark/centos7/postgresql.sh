@@ -489,7 +489,7 @@ benchmark_search_textsearch()
     commands+=("--command" "${enable_seqscan}")
     commands+=("--command" "\\timing")
     for i in $(seq ${n_search_tries}); do
-      target="to_tsvector('english', substring(text from 0 for 1000000))"
+      target="to_tsvector('english', text)"
       query="to_tsquery('english', '$(echo ${search_word} | sed -e 's/ OR / | /g')')"
       where="${target} @@ ${query}"
       commands+=("--command" "SELECT COUNT(*) FROM wikipedia WHERE ${where}")
