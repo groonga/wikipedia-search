@@ -208,7 +208,7 @@ setup_benchmark_db()
 
 database_oid()
 {
-  sudo -u postgres -H psql --echo-queries \
+  sudo -u postgres -H psql \
        --command "SELECT datid FROM pg_stat_database WHERE datname = '$1'" | \
     head -3 | \
     tail -1 | \
