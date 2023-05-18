@@ -3,7 +3,6 @@ require "shellwords"
 require "json"
 require "socket"
 
-require "wikipedia-search/downloader"
 require "wikipedia-search/path"
 
 module WikipediaSearch
@@ -31,34 +30,7 @@ module WikipediaSearch
     private
     def define_data_tasks
       namespace :data do
-        define_data_download_tasks
         define_data_convert_tasks
-      end
-    end
-
-    def define_data_download_tasks
-      path = @path.wikipedia
-      directory @path.download_dir.to_s
-
-      namespace :download do
-        namespace :pages do
-          file path.pages.to_s => @path.download_dir.to_s do
-            WikipediaSearch::Downloader.download(path.pages_url, path.pages)
-          end
-
-          desc "Download the latest #{@language} Wikipedia pages."
-          task @language => path.pages.to_s
-        end
-
-        namespace :titles do
-          file path.titles.to_s => @path.download_dir.to_s do
-            WikipediaSearch::Downloader.download(path.titles_url,
-                                                 path.titles)
-          end
-
-          desc "Download the latest #{@language} Wikipedia titles."
-          task @language => path.titles.to_s
-        end
       end
     end
 
@@ -75,15 +47,12 @@ module WikipediaSearch
 
     def define_wikipedia_data_convert_tasks(label, format, path)
       base_command_line = [
-        "bzcat",
-        Shellwords.escape(@path.wikipedia.pages.to_s),
-        "|",
         RbConfig.ruby,
         "bin/wikipedia-convert",
         "--format", format,
       ]
 
-      file path.partial_pages.to_s => @path.wikipedia.pages.to_s do
+      file path.partial_pages.to_s do
         max_n_records = ENV["MAX_N_RECORDS"]
         if max_n_records.nil? or max_n_records.empty?
           max_n_records = 5000
@@ -99,14 +68,14 @@ module WikipediaSearch
         command_line << max_n_characters.to_s
         command_line << "--output"
         command_line << path.partial_pages.to_s
-        sh(command_line.join(" "))
+        sh(*command_line)
       end
 
-      file path.all_pages.to_s => @path.wikipedia.pages.to_s do
+      file path.all_pages.to_s do
         command_line = base_command_line.dup
         command_line << "--output"
         command_line << path.all_pages.to_s
-        sh(command_line.join(" "))
+        sh(*command_line)
       end
 
       namespace @language do

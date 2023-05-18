@@ -2,12 +2,13 @@
 
 source "https://rubygems.org/"
 
-gem "rake"
-gem "bundler"
-gem "grn2drn"
-gem "cool.io"
 gem "berkshelf"
+gem "bundler"
 gem "chef"
+gem "cool.io"
+gem "grn2drn"
+gem "rake"
+gem "red-datasets"
 gem "test-unit", :require => false
 
 base_dir = File.dirname(__FILE__)

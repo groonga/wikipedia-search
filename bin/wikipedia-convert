@@ -56,7 +56,7 @@ when :sql
 when :csv
   converter_class = WikipediaSearch::CSVConverter
 end
-converter = converter_class.new(ARGF, converter_options)
+converter = converter_class.new(ARGF, **converter_options)
 if options.output == "-"
   output = $stdout
   converter.convert(output)
