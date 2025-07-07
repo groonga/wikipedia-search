@@ -36,20 +36,20 @@ module WikipediaSearch
     end
 
     def convert_page(page)
-      text = @page.revision.text
+      text = page.revision.text
       if @bulk
         @output.puts(",") unless @first_page
         record_values = [
-          @page.id,
-          escape_string(@page.title),
-          escape_string(shorten_text(@page.revision.text)),
+          page.id,
+          escape_string(page.title),
+          escape_string(shorten_text(page.revision.text)),
         ]
         @output.print("(#{record_values.join(', ')})")
       else
         record_values = [
-          @page.id,
-          escape_string(@page.title),
-          escape_string(shorten_text(@page.revision.text)),
+          page.id,
+          escape_string(page.title),
+          escape_string(shorten_text(page.revision.text)),
         ]
         @output.print("INSERT INTO wikipedia (id, title, text) VALUES ")
         @output.puts("(#{record_values.join(', ')});")

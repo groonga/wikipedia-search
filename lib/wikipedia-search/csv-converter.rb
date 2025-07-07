@@ -15,9 +15,9 @@ module WikipediaSearch
 
     def convert_page(page)
       record_values = [
-        @page.id,
-        escape_string(@page.title),
-        escape_string(shorten_text(@page.revision.text)),
+        page.id,
+        escape_string(page.title),
+        escape_string(shorten_text(page.revision.text)),
       ]
       @csv << record_values
     end
